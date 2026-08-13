@@ -428,6 +428,7 @@
     <div class="header">
         <h1>Intrinsic Value Calculator</h1>
         <p>Model a stock's fair value across different required-return hurdles (IV8 to IV15)</p>
+        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Prefilled with real Zoetis (ZTS) figures as a reference example &mdash; OCF, SBC, shares, and price from its most recent filings/quote (Aug 2026). Growth and dilution are judgment-call estimates, not published numbers. Just overwrite any field to model a different stock.</p>
     </div>
 
     <div class="content">
@@ -436,7 +437,7 @@
                 <label><span class="label-text">Operating Cash Flow ($M)<span class="info-icon">i<span class="tooltip">The cash a company's core business actually generated last year, before any spending on equipment, expansion, or dividends. Considered one of the harder numbers to fake, since it's tracking real cash, not accounting profit.<br><br><b>Yahoo Finance:</b> search the ticker &rarr; <i>Financials</i> tab &rarr; <i>Cash Flow</i> &rarr; look for &ldquo;Operating Cash Flow,&rdquo; most recent annual (TTM) column, in millions.</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
-                    <input type="number" id="ocf" value="1000" step="any">
+                    <input type="number" id="ocf" value="2887" step="any">
                 </div>
             </div>
 
@@ -444,13 +445,13 @@
                 <label><span class="label-text">Total Cash Cost of SBC ($M)<span class="info-icon">i<span class="tooltip">Companies often pay employees partly in stock instead of cash. That looks "free" on the income statement, but it quietly shrinks your ownership slice over time. This field is the real cash-equivalent cost of that dilution — not the accounting expense line.<br><br><b>Yahoo Finance doesn't show this directly.</b> Closest quick stand-in: <i>Financials</i> &rarr; <i>Cash Flow</i> &rarr; &ldquo;Stock-Based Compensation&rdquo; (understates the true cost, but works for a first pass). A more accurate figure also adds cash spent buying back shares to offset new grants, plus taxes withheld when employee stock vests — both found in the 10-K, not on Yahoo.</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
-                    <input type="number" id="sbc" value="50" step="any">
+                    <input type="number" id="sbc" value="95" step="any">
                 </div>
             </div>
 
             <div class="form-group">
                 <label><span class="label-text">Shares Outstanding (Millions)<span class="info-icon">i<span class="tooltip">How many total slices the company is cut into. Every dollar of profit gets divided across this many shares — more shares means each one is worth less, all else equal.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding.&rdquo;</span></span></span></label>
-                <input type="number" id="shares" value="100" step="any">
+                <input type="number" id="shares" value="413" step="any">
             </div>
 
             <div class="divider"></div>
@@ -458,7 +459,7 @@
             <div class="form-group">
                 <label><span class="label-text">Expected Perpetual Growth Rate<span class="info-icon">i<span class="tooltip">Your own assumption for how fast the company's cash profits keep growing, far into the future. This is a judgment call, not a published fact — nobody actually knows this number.<br><br>No single Yahoo Finance number gives you this. A reasonable starting point: <i>Financials</i> &rarr; <i>Income Statement</i> &rarr; compare Revenue over the last 3&ndash;5 years, or check the <i>Analysis</i> tab for Wall Street's long-term growth estimate.</span></span></span></label>
                 <div class="input-wrapper has-percent">
-                    <input type="number" id="growth" value="8" step="0.1">
+                    <input type="number" id="growth" value="5" step="0.1">
                     <span class="percent-icon">%</span>
                 </div>
             </div>
@@ -466,7 +467,7 @@
             <div class="form-group">
                 <label><span class="label-text">Annual Share Dilution Rate<span class="info-icon">i<span class="tooltip">Some companies quietly issue more shares each year, which dilutes you. Others buy back stock and shrink the share count, which helps you. This is the net rate of that change — negative means shares outstanding are shrinking.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding&rdquo; &mdash; compare this year's figure to last year's (from the company's prior annual report) and work out the percent change.</span></span></span></label>
                 <div class="input-wrapper has-percent">
-                    <input type="number" id="dilution" value="0" step="0.1">
+                    <input type="number" id="dilution" value="-1" step="0.1">
                     <span class="percent-icon">%</span>
                 </div>
             </div>
@@ -490,7 +491,7 @@
                 <label><span class="label-text">Current Stock Price<span class="info-icon">i<span class="tooltip">What the stock costs to buy right now.<br><br><b>Yahoo Finance:</b> the big number at the top of the stock's page.</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
-                    <input type="number" id="price" value="100" step="0.01">
+                    <input type="number" id="price" value="75.84" step="0.01">
                 </div>
             </div>
 
