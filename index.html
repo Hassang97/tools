@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intrinsic Value Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border: #e2e8f0;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1080px;
+            width: 100%;
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .header {
+            background: var(--surface);
+            padding: 2rem;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1.25fr;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .slider-value {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            outline: none;
+            background: var(--bg);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: var(--surface);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .has-icon input {
+            padding-left: 2rem;
+        }
+
+        .has-percent input {
+            padding-right: 2rem;
+        }
+
+        .percent-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .results-panel {
+            background: var(--bg);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .result-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .highlight-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            margin-top: 1rem;
+        }
+
+        .highlight-card .result-label {
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .highlight-card .sub-label {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            display: block;
+            margin-top: 0.25rem;
+        }
+
+        .highlight-card .result-value {
+            font-size: 2.5rem;
+            margin: 0.5rem 0;
+            color: var(--text-primary);
+        }
+
+        .mos-target {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.85rem;
+            padding-top: 0.85rem;
+            border-top: 1px dashed var(--border);
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .mos-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .fat-pitch {
+            color: var(--accent) !important;
+        }
+
+        .expensive {
+            color: var(--danger) !important;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .badge.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge.danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 1.5rem 0;
+        }
+
+        .label-text {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
+            font-size: 0.6rem;
+            font-weight: 500;
+            font-style: normal;
+            font-family: Georgia, 'Times New Roman', serif;
+            cursor: help;
+            margin-left: 0.4rem;
+            position: relative;
+            flex-shrink: 0;
+            opacity: 0.55;
+            transition: opacity 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        }
+
+        .info-icon:hover, .info-icon:focus {
+            opacity: 1;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .info-icon .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+            bottom: 140%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172a;
+            color: #ffffff;
+            text-align: left;
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 400;
+            font-style: normal;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.55;
+            letter-spacing: 0.01em;
+            width: 300px;
+            z-index: 10;
+            transition: opacity 0.15s ease;
+            box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+        }
+
+        .info-icon .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #0f172a transparent transparent transparent;
+        }
+
+        /* First field sits at the top of the panel — flip its tooltip to
+           open downward so it doesn't overflow above the viewport. */
+        .inputs-panel > .form-group:first-child .info-icon .tooltip {
+            bottom: auto;
+            top: 140%;
+        }
+
+        .inputs-panel > .form-group:first-child .info-icon .tooltip::after {
+            top: auto;
+            bottom: 100%;
+            border-color: transparent transparent #0f172a transparent;
+        }
+
+        .info-icon:hover .tooltip, .info-icon:focus .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .iv-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .iv-box .iv-val.na {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .iv-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .iv-box.active {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .iv-box .iv-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+
+        .iv-box .iv-val {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 0.25rem;
+        }
+
+        .glossary {
+            padding: 1.75rem 2rem 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .glossary h2 {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 1.25rem;
+        }
+
+        .glossary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem 2.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .glossary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .glossary-term {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .glossary-def {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Intrinsic Value Calculator</h1>
+        <p>Model a stock's fair value across different required-return hurdles (IV8 to IV15)</p>
+    </div>
+
+    <div class="content">
+        <div class="inputs-panel">
+            <div class="form-group">
+                <label><span class="label-text">Operating Cash Flow ($M)<span class="info-icon">i<span class="tooltip">The cash a company's core business actually generated last year, before any spending on equipment, expansion, or dividends. Considered one of the harder numbers to fake, since it's tracking real cash, not accounting profit.<br><br><b>Yahoo Finance:</b> search the ticker &rarr; <i>Financials</i> tab &rarr; <i>Cash Flow</i> &rarr; look for &ldquo;Operating Cash Flow,&rdquo; most recent annual (TTM) column, in millions.</span></span></span></label>
+                <div class="input-wrapper has-icon">
+                    <span class="input-icon">$</span>
+                    <input type="number" id="ocf" value="1000" step="any">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><span class="label-text">Total Cash Cost of SBC ($M)<span class="info-icon">i<span class="tooltip">Companies often pay employees partly in stock instead of cash. That looks "free" on the income statement, but it quietly shrinks your ownership slice over time. This field is the real cash-equivalent cost of that dilution — not the accounting expense line.<br><br><b>Yahoo Finance doesn't show this directly.</b> Closest quick stand-in: <i>Financials</i> &rarr; <i>Cash Flow</i> &rarr; &ldquo;Stock-Based Compensation&rdquo; (understates the true cost, but works for a first pass). A more accurate figure also adds cash spent buying back shares to offset new grants, plus taxes withheld when employee stock vests — both found in the 10-K, not on Yahoo.</span></span></span></label>
+                <div class="input-wrapper has-icon">
+                    <span class="input-icon">$</span>
+                    <input type="number" id="sbc" value="50" step="any">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><span class="label-text">Shares Outstanding (Millions)<span class="info-icon">i<span class="tooltip">How many total slices the company is cut into. Every dollar of profit gets divided across this many shares — more shares means each one is worth less, all else equal.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding.&rdquo;</span></span></span></label>
+                <input type="number" id="shares" value="100" step="any">
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="form-group">
+                <label><span class="label-text">Expected Perpetual Growth Rate<span class="info-icon">i<span class="tooltip">Your own assumption for how fast the company's cash profits keep growing, far into the future. This is a judgment call, not a published fact — nobody actually knows this number.<br><br>No single Yahoo Finance number gives you this. A reasonable starting point: <i>Financials</i> &rarr; <i>Income Statement</i> &rarr; compare Revenue over the last 3&ndash;5 years, or check the <i>Analysis</i> tab for Wall Street's long-term growth estimate.</span></span></span></label>
+                <div class="input-wrapper has-percent">
+                    <input type="number" id="growth" value="8" step="0.1">
+                    <span class="percent-icon">%</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><span class="label-text">Annual Share Dilution Rate<span class="info-icon">i<span class="tooltip">Some companies quietly issue more shares each year, which dilutes you. Others buy back stock and shrink the share count, which helps you. This is the net rate of that change — negative means shares outstanding are shrinking.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding&rdquo; &mdash; compare this year's figure to last year's (from the company's prior annual report) and work out the percent change.</span></span></span></label>
+                <div class="input-wrapper has-percent">
+                    <input type="number" id="dilution" value="0" step="0.1">
+                    <span class="percent-icon">%</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><span class="label-text">Year-15 Terminal Multiple<span class="info-icon">i<span class="tooltip">A guess at what multiple of its Year-15 profits the market might still pay for this business 15 years from now, once growth has slowed to a crawl.<br><br>Not on Yahoo Finance directly. A reasonable anchor: the current P/E ratio of mature, slow-growing companies in the same industry (<i>Statistics</i> tab &rarr; &ldquo;PE Ratio&rdquo;), or a conservative market-average figure like 12&ndash;15x.</span></span></span></label>
+                <input type="number" id="termMult" value="15" step="0.1" min="0">
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <span class="label-text">Perpetuity Weight in Hybrid IV<span class="info-icon">i<span class="tooltip">How much you trust an infinite "forever growth" estimate versus a more conservative 15-year cutoff. 100% leans entirely on the optimistic infinite-growth math; 0% relies entirely on the more cautious 15-year model.<br><br>Pure judgment call &mdash; no market data for this. Start at 50/50 and shift it based on how confident you are in the company's long-term durability.</span></span></span>
+                    <span class="slider-value" id="blend-display">50% / 50%</span>
+                </label>
+                <input type="range" id="blend-weight" min="0" max="100" value="50" step="5">
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="form-group">
+                <label><span class="label-text">Current Stock Price<span class="info-icon">i<span class="tooltip">What the stock costs to buy right now.<br><br><b>Yahoo Finance:</b> the big number at the top of the stock's page.</span></span></span></label>
+                <div class="input-wrapper has-icon">
+                    <span class="input-icon">$</span>
+                    <input type="number" id="price" value="100" step="0.01">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <span class="label-text">Target Return / Discount Rate<span class="info-icon">i<span class="tooltip">The annual return you personally want from this investment. A well-known value investor's own bar is 15% a year — "IV15." The lower settings (8-12%) show cheaper, less demanding fair-value estimates for comparison.<br><br>Not a lookup &mdash; this is the return <b>you</b> want. Slide it to set your own bar.</span></span></span>
+                    <span class="slider-value" id="rate-display">IV15 (15%)</span>
+                </label>
+                <input type="range" id="discount-rate" min="5" max="15" value="15" step="1">
+            </div>
+        </div>
+
+        <div class="results-panel">
+            <div>
+                <div class="result-item">
+                    <span class="result-label label-text">True Owners' Earnings (CF0)<span class="info-icon">i<span class="tooltip">Operating Cash Flow minus the true cash cost of stock-based compensation. A cash-based substitute for GAAP net income, and the base cash flow fed into both valuation legs below.</span></span></span>
+                    <span class="result-value" id="res-oe">$0 M</span>
+                </div>
+                <div class="result-item" style="border-bottom: none;">
+                    <span class="result-label label-text">Owners' Earnings Per Share<span class="info-icon">i<span class="tooltip">True Owners' Earnings divided by Shares Outstanding.</span></span></span>
+                    <span class="result-value" id="res-eps">$0.00</span>
+                </div>
+            </div>
+
+            <div class="highlight-card">
+                <span class="result-label label-text" id="main-iv-label">IV15 Value<span class="info-icon">i<span class="tooltip">The blended fair value at your selected required-return rate — a weighted average of the infinite-growth leg and the 15-year-cutoff-with-terminal-multiple leg.</span></span></span>
+                <span class="sub-label">Max price to guarantee a <span id="target-rate-sub">15</span>% annualized return</span>
+                <div class="result-value" id="res-iv">$0.00</div>
+                <div id="multiple-badge" class="badge">Current P/IV: 0.00x</div>
+                <span class="sub-label" id="blend-breakdown" style="margin-top: 0.5rem;">Perpetuity leg: $0.00 | Year-15 leg: $0.00</span>
+                <div class="mos-target">
+                    <span class="label-text">Buy Target (0.8&times; IV<span id="mos-rate-sub">15</span>)<span class="info-icon">i<span class="tooltip">A conventional 20% margin of safety below fair value. Rather than paying exactly what a business is worth, this is a more conservative price to actually act at — it leaves room for your assumptions being a bit too optimistic.</span></span></span>
+                    <span class="mos-value" id="res-mos">$0.00</span>
+                </div>
+            </div>
+
+            <div>
+                <span class="result-label label-text" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Reference Values (Different Required-Return Rates)<span class="info-icon">i<span class="tooltip" style="text-transform: none; letter-spacing: normal;">Same formula run at lower required-return rates, for comparison.</span></span></span>
+                <div class="iv-grid">
+                    <div class="iv-box" id="box-8">
+                        <div class="iv-label">IV8 (Fair Value)</div>
+                        <div class="iv-val" id="val-iv8">$0.00</div>
+                    </div>
+                    <div class="iv-box" id="box-10">
+                        <div class="iv-label">IV10 (Standard)</div>
+                        <div class="iv-val" id="val-iv10">$0.00</div>
+                    </div>
+                    <div class="iv-box" id="box-12">
+                        <div class="iv-label">IV12 (Premium)</div>
+                        <div class="iv-val" id="val-iv12">$0.00</div>
+                    </div>
+                    <div class="iv-box active" id="box-15">
+                        <div class="iv-label">IV15 (Fat Pitch)</div>
+                        <div class="iv-val" id="val-iv15">$0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glossary">
+        <h2>Glossary</h2>
+        <div class="glossary-grid">
+            <div class="glossary-item">
+                <div class="glossary-term">Owners' Earnings</div>
+                <div class="glossary-def">The real cash profit left for shareholders once the true cost of stock-based compensation is backed out — a more honest number than accounting net income.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Cash Cost of SBC</div>
+                <div class="glossary-def">What paying employees in stock actually costs existing shareholders in cash terms, once you count buybacks used to offset dilution and taxes withheld on vesting stock — not the smaller non-cash number on the income statement.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">IV8 / IV10 / IV12 / IV15</div>
+                <div class="glossary-def">The fair value of a stock at four different required-return bars. IV15 is the strictest: the most you could pay today and still expect a 15% annualized return over 15 years. IV8 is the loosest, most forgiving estimate.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">P/IV</div>
+                <div class="glossary-def">Current price divided by intrinsic value at your chosen hurdle. Below 1.0x means the stock is trading under fair value (undervalued); above 1.0x means it's trading over fair value (overvalued).</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Fat Pitch</div>
+                <div class="glossary-def">A borrowed baseball term for a rare, unusually attractive opportunity — a good business trading well below its intrinsic value, worth swinging at.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Perpetuity Leg</div>
+                <div class="glossary-def">One of two valuation estimates this tool blends: the "forever" case, assuming cash flow keeps growing at the same rate indefinitely.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Year-15 Leg</div>
+                <div class="glossary-def">The second estimate: a more conservative case that only projects 15 years out, then assumes the business is valued at a set earnings multiple at that point instead of growing forever.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Terminal Multiple</div>
+                <div class="glossary-def">The earnings multiple assumed for the Year-15 leg's ending value — essentially "what P/E ratio might this business still command in 15 years," once its growth has matured.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Dilution Rate</div>
+                <div class="glossary-def">How fast the total share count grows or shrinks each year. A positive rate means more shares get created than bought back, so each existing share represents a slightly smaller slice of the company over time.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Discount / Hurdle Rate</div>
+                <div class="glossary-def">The annual return you require to make an investment worth it. A higher hurdle demands a lower purchase price today — it's the "d" behind IV8 through IV15.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Leg 1: closed-form growing perpetuity with dilution
+    // IV = CF1 / [(1+y)(1+d) - (1+g)]
+    function calculatePerpetuityIV(cfPerShare, growth, dilution, discountRate) {
+        const cf1 = cfPerShare * (1 + growth);
+        const denominator = (1 + dilution) * (1 + discountRate) - (1 + growth);
+        if (denominator <= 0) return Infinity;
+        return cf1 / denominator;
+    }
+
+    // Leg 2: explicit cash flows through Year 15, dilution-adjusted, capped
+    // with a terminal multiple on Year-15 owners' earnings.
+    function calculateFiniteIV(cfPerShare, growth, dilution, discountRate, terminalMultiple, years) {
+        const perShareDiscount = (1 + dilution) * (1 + discountRate);
+        let pv = 0;
+        let cfK = cfPerShare;
+        for (let k = 1; k <= years; k++) {
+            cfK *= (1 + growth);
+            pv += cfK / Math.pow(perShareDiscount, k);
+        }
+        pv += (cfK * terminalMultiple) / Math.pow(perShareDiscount, years);
+        return pv;
+    }
+
+    // Blends a full multi-stage model with the same model cut off at Year 15.
+    function calculateHybridIV(cfPerShare, growth, dilution, discountRate, terminalMultiple, perpetuityWeight) {
+        const perpetuityIV = calculatePerpetuityIV(cfPerShare, growth, dilution, discountRate);
+        const finiteIV = calculateFiniteIV(cfPerShare, growth, dilution, discountRate, terminalMultiple, 15);
+        let hybridIV;
+        if (!isFinite(perpetuityIV)) {
+            hybridIV = perpetuityWeight > 0 ? Infinity : finiteIV;
+        } else {
+            hybridIV = perpetuityWeight * perpetuityIV + (1 - perpetuityWeight) * finiteIV;
+        }
+        return { hybridIV, perpetuityIV, finiteIV };
+    }
+
+    // Guards against nonsense output: growth too close to/above the
+    // effective hurdle (Infinity), negative/zero owners' earnings, or
+    // any other non-finite result. Returns display text instead of a number.
+    function formatIV(value, cfPerShare) {
+        if (cfPerShare <= 0) return 'N/A (neg. earnings)';
+        if (!isFinite(value)) return 'N/A (growth ≥ hurdle)';
+        if (value <= 0) return 'N/A';
+        return `$${value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+
+    function calculate() {
+        // Inputs
+        const ocf = parseFloat(document.getElementById('ocf').value) || 0;
+        const sbc = parseFloat(document.getElementById('sbc').value) || 0;
+        const shares = parseFloat(document.getElementById('shares').value) || 1;
+        const growth = parseFloat(document.getElementById('growth').value) / 100 || 0;
+        const dilution = parseFloat(document.getElementById('dilution').value) / 100 || 0;
+        const currentPrice = parseFloat(document.getElementById('price').value) || 0;
+        const selectedRate = parseFloat(document.getElementById('discount-rate').value);
+        const terminalMultiple = parseFloat(document.getElementById('termMult').value) || 0;
+        const perpetuityWeight = parseFloat(document.getElementById('blend-weight').value) / 100;
+
+        // Update Slider Displays
+        document.getElementById('rate-display').innerText = `IV${selectedRate} (${selectedRate}%)`;
+        document.getElementById('main-iv-label').innerText = `IV${selectedRate} Value`;
+        document.getElementById('target-rate-sub').innerText = selectedRate;
+        document.getElementById('mos-rate-sub').innerText = selectedRate;
+        document.getElementById('blend-display').innerText = `${(perpetuityWeight * 100).toFixed(0)}% / ${(100 - perpetuityWeight * 100).toFixed(0)}%`;
+
+        // Step 1: Owners Earnings
+        const ownersEarnings = ocf - sbc;
+        const cfPerShare = ownersEarnings / shares;
+
+        document.getElementById('res-oe').innerText = `$${ownersEarnings.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})} M`;
+        document.getElementById('res-eps').innerText = `$${cfPerShare.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+        // Calculate selected IV (hybrid of perpetuity + Year-15-cutoff legs)
+        const { hybridIV: mainIv, perpetuityIV, finiteIV } = calculateHybridIV(
+            cfPerShare, growth, dilution, selectedRate / 100, terminalMultiple, perpetuityWeight
+        );
+        document.getElementById('res-iv').innerText = formatIV(mainIv, cfPerShare);
+        document.getElementById('blend-breakdown').innerText =
+            `Perpetuity leg: ${formatIV(perpetuityIV, cfPerShare)} | Year-15 leg: ${formatIV(finiteIV, cfPerShare)}`;
+
+        // 20% margin-of-safety buy target, off the same main IV
+        const mosTarget = (isFinite(mainIv) && mainIv > 0) ? mainIv * 0.8 : mainIv;
+        document.getElementById('res-mos').innerText = formatIV(mosTarget, cfPerShare);
+
+        // Calculate Multiple (only meaningful if mainIv is a real, positive number)
+        const badgeEl = document.getElementById('multiple-badge');
+        const resIvEl = document.getElementById('res-iv');
+        if (cfPerShare > 0 && isFinite(mainIv) && mainIv > 0) {
+            const multiple = currentPrice / mainIv;
+
+            if (multiple < 1.0) {
+                resIvEl.className = 'result-value fat-pitch';
+                badgeEl.className = 'badge success';
+                badgeEl.innerText = `Current P/IV${selectedRate}: ${multiple.toFixed(2)}x (Undervalued)`;
+            } else {
+                resIvEl.className = 'result-value expensive';
+                badgeEl.className = 'badge danger';
+                badgeEl.innerText = `Current P/IV${selectedRate}: ${multiple.toFixed(2)}x (Overvalued)`;
+            }
+        } else {
+            resIvEl.className = 'result-value';
+            badgeEl.className = 'badge';
+            badgeEl.innerText = `Current P/IV${selectedRate}: N/A`;
+        }
+
+        // Calculate Reference IVs (capped at IV15 — IV18/IV20 are unused)
+        const referenceRates = [8, 10, 12, 15];
+        referenceRates.forEach(rate => {
+            const { hybridIV: iv } = calculateHybridIV(cfPerShare, growth, dilution, rate / 100, terminalMultiple, perpetuityWeight);
+            const valEl = document.getElementById(`val-iv${rate}`);
+            valEl.innerText = formatIV(iv, cfPerShare);
+            valEl.className = (cfPerShare > 0 && isFinite(iv) && iv > 0) ? 'iv-val' : 'iv-val na';
+
+            // Highlight active box
+            const box = document.getElementById(`box-${rate}`);
+            if (rate === selectedRate) {
+                box.className = 'iv-box active';
+            } else {
+                box.className = 'iv-box';
+            }
+        });
+    }
+
+    // Attach listeners
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', calculate);
+    });
+
+    // Initial calculation
+    calculate();
+</script>
+
+</body>
+</html>
