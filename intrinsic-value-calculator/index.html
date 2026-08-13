@@ -342,13 +342,10 @@
             border-color: transparent transparent #0f172a transparent;
         }
 
-        /* Visibility is toggled by JS (not :hover) so the tooltip itself
-           can be hovered without losing its open state, and so hiding can
-           have a short grace period instead of vanishing instantly. */
-        /* Native :hover/:focus-within, not JS-managed state: the tooltip is
+        /* Native :hover/:focus-within, not JS-managed state. The tooltip is
            a DOM descendant of .info-icon, so this stays satisfied whether
-           the mouse is over the icon or has moved onto the tooltip itself
-           — no custom show/hide timers competing with the browser. */
+           the mouse is over the icon or has moved onto the tooltip itself,
+           with no custom show/hide timers competing with the browser. */
         .info-icon:hover .tooltip,
         .info-icon:focus-within .tooltip {
             visibility: visible;
@@ -440,13 +437,13 @@
     <div class="header">
         <h1>Intrinsic Value Calculator</h1>
         <p>Model a stock's fair value across different required-return hurdles (IV8 to IV15)</p>
-        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Prefilled with real Zoetis (ZTS) figures as a reference example &mdash; OCF, SBC, shares, and price from its most recent filings/quote (Aug 2026). Growth (5%) matches ZTS's actual 4-year revenue CAGR; dilution (-2%) matches its actual 2023&ndash;2025 share-count shrinkage &mdash; both are still judgment calls about the future, not guarantees. Just overwrite any field to model a different stock.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Prefilled with real Zoetis (ZTS) figures as a reference example: OCF, SBC, shares, and price from its most recent filings/quote (Aug 2026). Growth (5%) matches ZTS's actual 4-year revenue CAGR, and dilution (-2%) matches its actual 2023&ndash;2025 share-count shrinkage, though both are still judgment calls about the future, not guarantees. Just overwrite any field to model a different stock.</p>
     </div>
 
     <div class="content">
         <div class="inputs-panel">
             <div class="form-group">
-                <label><span class="label-text">Operating Cash Flow ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">Cash the core business actually generated last year &mdash; harder to fake than accounting profit.<br><br><b>Yahoo Finance:</b> Financials &rarr; Cash Flow &rarr; &ldquo;Operating Cash Flow&rdquo; (most recent annual/TTM, in millions).</span></span></span></label>
+                <label><span class="label-text">Operating Cash Flow ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">Cash the core business actually generated last year, harder to fake than accounting profit.<br><br><b>Yahoo Finance:</b> Financials &rarr; Cash Flow &rarr; &ldquo;Operating Cash Flow&rdquo; (most recent annual/TTM, in millions).</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
                     <input type="number" id="ocf" value="2887" step="any">
@@ -454,7 +451,7 @@
             </div>
 
             <div class="form-group">
-                <label><span class="label-text">Total Cash Cost of SBC ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The real cash-equivalent cost of paying employees in stock &mdash; not the GAAP expense line, which looks "free" but quietly dilutes you.<br><br><b>Yahoo doesn't show this directly.</b> Stand-in: Financials &rarr; Cash Flow &rarr; &ldquo;Stock-Based Compensation&rdquo; (understates the true cost, but works for a first pass).</span></span></span></label>
+                <label><span class="label-text">Total Cash Cost of SBC ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The real cash-equivalent cost of paying employees in stock, not the GAAP expense line, which looks "free" but quietly dilutes you.<br><br><b>Yahoo doesn't show this directly.</b> Stand-in: Financials &rarr; Cash Flow &rarr; &ldquo;Stock-Based Compensation&rdquo; (understates the true cost, but works for a first pass).</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
                     <input type="number" id="sbc" value="95" step="any">
@@ -462,14 +459,14 @@
             </div>
 
             <div class="form-group">
-                <label><span class="label-text">Shares Outstanding (Millions)<span class="info-icon" tabindex="0">i<span class="tooltip">How many total slices the company is cut into. Every dollar of profit gets divided across this many shares — more shares means each one is worth less, all else equal.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding.&rdquo;</span></span></span></label>
+                <label><span class="label-text">Shares Outstanding (Millions)<span class="info-icon" tabindex="0">i<span class="tooltip">How many total slices the company is cut into. Every dollar of profit gets divided across this many shares, so more shares means each one is worth less, all else equal.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding.&rdquo;</span></span></span></label>
                 <input type="number" id="shares" value="413" step="any">
             </div>
 
             <div class="divider"></div>
 
             <div class="form-group">
-                <label><span class="label-text">Expected Perpetual Growth Rate<span class="info-icon" tabindex="0">i<span class="tooltip">Your own assumption for how fast the company's cash profits keep growing, far into the future. This is a judgment call, not a published fact — nobody actually knows this number.<br><br>No single Yahoo Finance number gives you this. A reasonable starting point: <i>Financials</i> &rarr; <i>Income Statement</i> &rarr; compare Revenue over the last 3&ndash;5 years, or check the <i>Analysis</i> tab for Wall Street's long-term growth estimate.</span></span></span></label>
+                <label><span class="label-text">Expected Perpetual Growth Rate<span class="info-icon" tabindex="0">i<span class="tooltip">Your own assumption for how fast the company's cash profits keep growing, far into the future. This is a judgment call, not a published fact. Nobody actually knows this number.<br><br>No single Yahoo Finance number gives you this. A reasonable starting point: <i>Financials</i> &rarr; <i>Income Statement</i> &rarr; compare Revenue over the last 3&ndash;5 years, or check the <i>Analysis</i> tab for Wall Street's long-term growth estimate.</span></span></span></label>
                 <div class="input-wrapper has-percent">
                     <input type="number" id="growth" value="5" step="0.1">
                     <span class="percent-icon">%</span>
@@ -477,7 +474,7 @@
             </div>
 
             <div class="form-group">
-                <label><span class="label-text">Annual Share Dilution Rate<span class="info-icon" tabindex="0">i<span class="tooltip">Some companies quietly issue more shares each year, which dilutes you. Others buy back stock and shrink the share count, which helps you. This is the net rate of that change — negative means shares outstanding are shrinking.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding&rdquo; &mdash; compare this year's figure to last year's (from the company's prior annual report) and work out the percent change.</span></span></span></label>
+                <label><span class="label-text">Annual Share Dilution Rate<span class="info-icon" tabindex="0">i<span class="tooltip">Some companies quietly issue more shares each year, which dilutes you. Others buy back stock and shrink the share count, which helps you. This is the net rate of that change; negative means shares outstanding are shrinking.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding.&rdquo; Compare this year's figure to last year's (from the company's prior annual report) and work out the percent change.</span></span></span></label>
                 <div class="input-wrapper has-percent">
                     <input type="number" id="dilution" value="-2" step="0.1">
                     <span class="percent-icon">%</span>
@@ -491,7 +488,7 @@
 
             <div class="form-group">
                 <label>
-                    <span class="label-text">Perpetuity Weight in Hybrid IV<span class="info-icon" tabindex="0">i<span class="tooltip">How much you trust an infinite "forever growth" estimate versus a more conservative 15-year cutoff. 100% leans entirely on the optimistic infinite-growth math; 0% relies entirely on the more cautious 15-year model.<br><br>Pure judgment call &mdash; no market data for this. Start at 50/50 and shift it based on how confident you are in the company's long-term durability.</span></span></span>
+                    <span class="label-text">Perpetuity Weight in Hybrid IV<span class="info-icon" tabindex="0">i<span class="tooltip">How much you trust an infinite "forever growth" estimate versus a more conservative 15-year cutoff. 100% leans entirely on the optimistic infinite-growth math; 0% relies entirely on the more cautious 15-year model.<br><br>Pure judgment call, since there's no market data for this. Start at 50/50 and shift it based on how confident you are in the company's long-term durability.</span></span></span>
                     <span class="slider-value" id="blend-display">0% / 100%</span>
                 </label>
                 <input type="range" id="blend-weight" min="0" max="100" value="0" step="5">
@@ -509,7 +506,7 @@
 
             <div class="form-group">
                 <label>
-                    <span class="label-text">Target Return / Discount Rate<span class="info-icon" tabindex="0">i<span class="tooltip">The annual return you personally want from this investment. A well-known value investor's own bar is 15% a year — "IV15." The lower settings (8-12%) show cheaper, less demanding fair-value estimates for comparison.<br><br>Not a lookup &mdash; this is the return <b>you</b> want. Slide it to set your own bar.</span></span></span>
+                    <span class="label-text">Target Return / Discount Rate<span class="info-icon" tabindex="0">i<span class="tooltip">The annual return you personally want from this investment. A well-known value investor's own bar is 15% a year, what he calls "IV15." The lower settings (8-12%) show cheaper, less demanding fair-value estimates for comparison.<br><br>Not a lookup. This is the return <b>you</b> want. Slide it to set your own bar.</span></span></span>
                     <span class="slider-value" id="rate-display">IV15 (15%)</span>
                 </label>
                 <input type="range" id="discount-rate" min="5" max="15" value="15" step="1">
@@ -529,13 +526,13 @@
             </div>
 
             <div class="highlight-card">
-                <span class="result-label label-text" id="main-iv-label">IV15 Value<span class="info-icon" tabindex="0">i<span class="tooltip">The blended fair value at your selected required-return rate — a weighted average of the infinite-growth leg and the 15-year-cutoff-with-terminal-multiple leg.</span></span></span>
+                <span class="result-label label-text" id="main-iv-label">IV15 Value<span class="info-icon" tabindex="0">i<span class="tooltip">The blended fair value at your selected required-return rate, a weighted average of the infinite-growth leg and the 15-year-cutoff-with-terminal-multiple leg.</span></span></span>
                 <span class="sub-label">Max price to guarantee a <span id="target-rate-sub">15</span>% annualized return</span>
                 <div class="result-value" id="res-iv">$0.00</div>
                 <div id="multiple-badge" class="badge">&nbsp;</div>
                 <span class="sub-label" id="blend-breakdown" style="margin-top: 0.5rem;">Perpetuity leg: $0.00 | Year-15 leg: $0.00</span>
                 <div class="mos-target">
-                    <span class="label-text">Conservative Buy Target<span class="info-icon" tabindex="0">i<span class="tooltip">A more cautious price than fair value itself &mdash; 20% cheaper (0.8&times; the IV<span id="mos-rate-sub">15</span> value above). Rather than paying exactly what a business is worth, this leaves room for your assumptions being a bit too optimistic before you act.</span></span></span>
+                    <span class="label-text">Conservative Buy Target<span class="info-icon" tabindex="0">i<span class="tooltip">A more cautious price than fair value itself: 20% cheaper (0.8&times; the IV<span id="mos-rate-sub">15</span> value above). Rather than paying exactly what a business is worth, this leaves room for your assumptions being a bit too optimistic before you act.</span></span></span>
                     <span class="mos-value" id="res-mos">$0.00</span>
                 </div>
             </div>
@@ -569,11 +566,11 @@
         <div class="glossary-grid">
             <div class="glossary-item">
                 <div class="glossary-term">Owners' Earnings</div>
-                <div class="glossary-def">The real cash profit left for shareholders once the true cost of stock-based compensation is backed out — a more honest number than accounting net income.</div>
+                <div class="glossary-def">The real cash profit left for shareholders once the true cost of stock-based compensation is backed out, a more honest number than accounting net income.</div>
             </div>
             <div class="glossary-item">
                 <div class="glossary-term">Cash Cost of SBC</div>
-                <div class="glossary-def">What paying employees in stock actually costs existing shareholders in cash terms, once you count buybacks used to offset dilution and taxes withheld on vesting stock — not the smaller non-cash number on the income statement.</div>
+                <div class="glossary-def">What paying employees in stock actually costs existing shareholders in cash terms, once you count buybacks used to offset dilution and taxes withheld on vesting stock. Not the smaller non-cash number on the income statement.</div>
             </div>
             <div class="glossary-item">
                 <div class="glossary-term">IV8 / IV10 / IV12 / IV15</div>
@@ -585,7 +582,7 @@
             </div>
             <div class="glossary-item">
                 <div class="glossary-term">Fat Pitch</div>
-                <div class="glossary-def">A borrowed baseball term for a rare, unusually attractive opportunity — a good business trading well below its intrinsic value, worth swinging at.</div>
+                <div class="glossary-def">A borrowed baseball term for a rare, unusually attractive opportunity: a good business trading well below its intrinsic value, worth swinging at.</div>
             </div>
             <div class="glossary-item">
                 <div class="glossary-term">Perpetuity Leg</div>
@@ -597,7 +594,7 @@
             </div>
             <div class="glossary-item">
                 <div class="glossary-term">Terminal Multiple</div>
-                <div class="glossary-def">The earnings multiple assumed for the Year-15 leg's ending value — essentially "what P/E ratio might this business still command in 15 years," once its growth has matured.</div>
+                <div class="glossary-def">The earnings multiple assumed for the Year-15 leg's ending value: essentially "what P/E ratio might this business still command in 15 years," once its growth has matured.</div>
             </div>
             <div class="glossary-item">
                 <div class="glossary-term">Dilution Rate</div>
@@ -605,7 +602,7 @@
             </div>
             <div class="glossary-item">
                 <div class="glossary-term">Discount / Hurdle Rate</div>
-                <div class="glossary-def">The annual return you require to make an investment worth it. A higher hurdle demands a lower purchase price today — it's the "d" behind IV8 through IV15.</div>
+                <div class="glossary-def">The annual return you require to make an investment worth it. A higher hurdle demands a lower purchase price today. It's the "d" behind IV8 through IV15.</div>
             </div>
         </div>
     </div>
@@ -719,7 +716,7 @@
             badgeEl.innerText = `Not enough data to compare`;
         }
 
-        // Calculate Reference IVs (capped at IV15 — IV18/IV20 are unused)
+        // Calculate Reference IVs (capped at IV15; IV18/IV20 are unused)
         const referenceRates = [8, 10, 12, 15];
         referenceRates.forEach(rate => {
             const { hybridIV: iv } = calculateHybridIV(cfPerShare, growth, dilution, rate / 100, terminalMultiple, perpetuityWeight);
@@ -746,7 +743,7 @@
     calculate();
 
     // Tooltip positioning: computed once up front (and on resize), not on
-    // every hover — layout dimensions are readable via getBoundingClientRect
+    // every hover, since layout dimensions are readable via getBoundingClientRect
     // even while an element is visibility:hidden, so there's no need to
     // recompute per-interaction. Showing/hiding itself is left entirely to
     // native CSS :hover/:focus-within (see stylesheet), which has no timing
