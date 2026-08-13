@@ -480,9 +480,9 @@
             <div class="form-group">
                 <label>
                     <span class="label-text">Perpetuity Weight in Hybrid IV<span class="info-icon">i<span class="tooltip">How much you trust an infinite "forever growth" estimate versus a more conservative 15-year cutoff. 100% leans entirely on the optimistic infinite-growth math; 0% relies entirely on the more cautious 15-year model.<br><br>Pure judgment call &mdash; no market data for this. Start at 50/50 and shift it based on how confident you are in the company's long-term durability.</span></span></span>
-                    <span class="slider-value" id="blend-display">50% / 50%</span>
+                    <span class="slider-value" id="blend-display">0% / 100%</span>
                 </label>
-                <input type="range" id="blend-weight" min="0" max="100" value="50" step="5">
+                <input type="range" id="blend-weight" min="0" max="100" value="0" step="5">
             </div>
 
             <div class="divider"></div>
@@ -520,10 +520,10 @@
                 <span class="result-label label-text" id="main-iv-label">IV15 Value<span class="info-icon">i<span class="tooltip">The blended fair value at your selected required-return rate — a weighted average of the infinite-growth leg and the 15-year-cutoff-with-terminal-multiple leg.</span></span></span>
                 <span class="sub-label">Max price to guarantee a <span id="target-rate-sub">15</span>% annualized return</span>
                 <div class="result-value" id="res-iv">$0.00</div>
-                <div id="multiple-badge" class="badge">Current P/IV: 0.00x</div>
+                <div id="multiple-badge" class="badge">&nbsp;</div>
                 <span class="sub-label" id="blend-breakdown" style="margin-top: 0.5rem;">Perpetuity leg: $0.00 | Year-15 leg: $0.00</span>
                 <div class="mos-target">
-                    <span class="label-text">Buy Target (0.8&times; IV<span id="mos-rate-sub">15</span>)<span class="info-icon">i<span class="tooltip">A conventional 20% margin of safety below fair value. Rather than paying exactly what a business is worth, this is a more conservative price to actually act at — it leaves room for your assumptions being a bit too optimistic.</span></span></span>
+                    <span class="label-text">Conservative Buy Target<span class="info-icon">i<span class="tooltip">A more cautious price than fair value itself &mdash; 20% cheaper (0.8&times; the IV<span id="mos-rate-sub">15</span> value above). Rather than paying exactly what a business is worth, this leaves room for your assumptions being a bit too optimistic before you act.</span></span></span>
                     <span class="mos-value" id="res-mos">$0.00</span>
                 </div>
             </div>
@@ -691,18 +691,20 @@
             const multiple = currentPrice / mainIv;
 
             if (multiple < 1.0) {
+                const pctBelow = (1 - multiple) * 100;
                 resIvEl.className = 'result-value fat-pitch';
                 badgeEl.className = 'badge success';
-                badgeEl.innerText = `Current P/IV${selectedRate}: ${multiple.toFixed(2)}x (Undervalued)`;
+                badgeEl.innerText = `Trading ${pctBelow.toFixed(0)}% below fair value`;
             } else {
+                const pctAbove = (multiple - 1) * 100;
                 resIvEl.className = 'result-value expensive';
                 badgeEl.className = 'badge danger';
-                badgeEl.innerText = `Current P/IV${selectedRate}: ${multiple.toFixed(2)}x (Overvalued)`;
+                badgeEl.innerText = `Trading ${pctAbove.toFixed(0)}% above fair value`;
             }
         } else {
             resIvEl.className = 'result-value';
             badgeEl.className = 'badge';
-            badgeEl.innerText = `Current P/IV${selectedRate}: N/A`;
+            badgeEl.innerText = `Not enough data to compare`;
         }
 
         // Calculate Reference IVs (capped at IV15 — IV18/IV20 are unused)
