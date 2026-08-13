@@ -311,6 +311,8 @@
             letter-spacing: 0.01em;
             width: 300px;
             max-width: min(300px, 88vw);
+            max-height: 260px;
+            overflow-y: auto;
             z-index: 10;
             transition: opacity 0.12s ease;
             box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
@@ -444,7 +446,7 @@
     <div class="content">
         <div class="inputs-panel">
             <div class="form-group">
-                <label><span class="label-text">Operating Cash Flow ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The cash a company's core business actually generated last year, before any spending on equipment, expansion, or dividends. Considered one of the harder numbers to fake, since it's tracking real cash, not accounting profit.<br><br><b>Yahoo Finance:</b> search the ticker &rarr; <i>Financials</i> tab &rarr; <i>Cash Flow</i> &rarr; look for &ldquo;Operating Cash Flow,&rdquo; most recent annual (TTM) column, in millions.</span></span></span></label>
+                <label><span class="label-text">Operating Cash Flow ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">Cash the core business actually generated last year &mdash; harder to fake than accounting profit.<br><br><b>Yahoo Finance:</b> Financials &rarr; Cash Flow &rarr; &ldquo;Operating Cash Flow&rdquo; (most recent annual/TTM, in millions).</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
                     <input type="number" id="ocf" value="2887" step="any">
@@ -452,7 +454,7 @@
             </div>
 
             <div class="form-group">
-                <label><span class="label-text">Total Cash Cost of SBC ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">Companies often pay employees partly in stock instead of cash. That looks "free" on the income statement, but it quietly shrinks your ownership slice over time. This field is the real cash-equivalent cost of that dilution — not the accounting expense line.<br><br><b>Yahoo Finance doesn't show this directly.</b> Closest quick stand-in: <i>Financials</i> &rarr; <i>Cash Flow</i> &rarr; &ldquo;Stock-Based Compensation&rdquo; (understates the true cost, but works for a first pass). A more accurate figure also adds cash spent buying back shares to offset new grants, plus taxes withheld when employee stock vests — both found in the 10-K, not on Yahoo.</span></span></span></label>
+                <label><span class="label-text">Total Cash Cost of SBC ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The real cash-equivalent cost of paying employees in stock &mdash; not the GAAP expense line, which looks "free" but quietly dilutes you.<br><br><b>Yahoo doesn't show this directly.</b> Stand-in: Financials &rarr; Cash Flow &rarr; &ldquo;Stock-Based Compensation&rdquo; (understates the true cost, but works for a first pass).</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
                     <input type="number" id="sbc" value="95" step="any">
