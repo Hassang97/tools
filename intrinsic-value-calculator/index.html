@@ -310,8 +310,9 @@
             line-height: 1.55;
             letter-spacing: 0.01em;
             width: 300px;
+            max-width: min(300px, 88vw);
             z-index: 10;
-            transition: opacity 0.15s ease;
+            transition: opacity 0.12s ease;
             box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
         }
 
@@ -326,22 +327,26 @@
             border-color: #0f172a transparent transparent transparent;
         }
 
-        /* First field sits at the top of the panel — flip its tooltip to
-           open downward so it doesn't overflow above the viewport. */
-        .inputs-panel > .form-group:first-child .info-icon .tooltip {
+        /* Applied by JS once it measures the icon actually sits too close
+           to the top of the viewport for an upward tooltip to fit. */
+        .info-icon .tooltip.flip-down {
             bottom: auto;
             top: 140%;
         }
 
-        .inputs-panel > .form-group:first-child .info-icon .tooltip::after {
+        .info-icon .tooltip.flip-down::after {
             top: auto;
             bottom: 100%;
             border-color: transparent transparent #0f172a transparent;
         }
 
-        .info-icon:hover .tooltip, .info-icon:focus .tooltip {
+        /* Visibility is toggled by JS (not :hover) so the tooltip itself
+           can be hovered without losing its open state, and so hiding can
+           have a short grace period instead of vanishing instantly. */
+        .info-icon .tooltip.is-open {
             visibility: visible;
             opacity: 1;
+            pointer-events: auto;
         }
 
         .iv-grid {
@@ -732,6 +737,67 @@
 
     // Initial calculation
     calculate();
+
+    // Tooltip controller: positions each tooltip so it never runs off the
+    // viewport, and keeps it open (with a short grace period) when the
+    // mouse travels from the icon into the tooltip itself to read it.
+    (function () {
+        const GRACE_MS = 300;
+        const EDGE_MARGIN = 12;
+
+        document.querySelectorAll('.info-icon').forEach(icon => {
+            const tooltip = icon.querySelector('.tooltip');
+            if (!tooltip) return;
+            let hideTimer = null;
+
+            function positionTooltip() {
+                // Reset to default centered-above placement before measuring.
+                tooltip.classList.remove('flip-down');
+                tooltip.style.transform = 'translateX(-50%)';
+
+                const iconRect = icon.getBoundingClientRect();
+                const tooltipHeight = tooltip.offsetHeight;
+
+                // Flip below the icon if there isn't room above it.
+                if (iconRect.top - tooltipHeight - 16 < EDGE_MARGIN) {
+                    tooltip.classList.add('flip-down');
+                }
+
+                // Clamp horizontally so it never overflows the viewport.
+                const tooltipRect = tooltip.getBoundingClientRect();
+                let shift = 0;
+                if (tooltipRect.left < EDGE_MARGIN) {
+                    shift = EDGE_MARGIN - tooltipRect.left;
+                } else if (tooltipRect.right > window.innerWidth - EDGE_MARGIN) {
+                    shift = (window.innerWidth - EDGE_MARGIN) - tooltipRect.right;
+                }
+                if (shift !== 0) {
+                    tooltip.style.transform = `translateX(calc(-50% + ${shift}px))`;
+                }
+            }
+
+            function show() {
+                clearTimeout(hideTimer);
+                tooltip.classList.add('is-open');
+                positionTooltip();
+            }
+
+            function scheduleHide() {
+                clearTimeout(hideTimer);
+                hideTimer = setTimeout(() => {
+                    tooltip.classList.remove('is-open');
+                }, GRACE_MS);
+            }
+
+            icon.addEventListener('mouseenter', show);
+            icon.addEventListener('focus', show);
+            icon.addEventListener('mouseleave', scheduleHide);
+            icon.addEventListener('blur', scheduleHide);
+            // Hovering the tooltip itself (once open) keeps it open.
+            tooltip.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+            tooltip.addEventListener('mouseleave', scheduleHide);
+        });
+    })();
 </script>
 
 </body>
