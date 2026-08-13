@@ -343,7 +343,12 @@
         /* Visibility is toggled by JS (not :hover) so the tooltip itself
            can be hovered without losing its open state, and so hiding can
            have a short grace period instead of vanishing instantly. */
-        .info-icon .tooltip.is-open {
+        /* Native :hover/:focus-within, not JS-managed state: the tooltip is
+           a DOM descendant of .info-icon, so this stays satisfied whether
+           the mouse is over the icon or has moved onto the tooltip itself
+           — no custom show/hide timers competing with the browser. */
+        .info-icon:hover .tooltip,
+        .info-icon:focus-within .tooltip {
             visibility: visible;
             opacity: 1;
             pointer-events: auto;
@@ -439,7 +444,7 @@
     <div class="content">
         <div class="inputs-panel">
             <div class="form-group">
-                <label><span class="label-text">Operating Cash Flow ($M)<span class="info-icon">i<span class="tooltip">The cash a company's core business actually generated last year, before any spending on equipment, expansion, or dividends. Considered one of the harder numbers to fake, since it's tracking real cash, not accounting profit.<br><br><b>Yahoo Finance:</b> search the ticker &rarr; <i>Financials</i> tab &rarr; <i>Cash Flow</i> &rarr; look for &ldquo;Operating Cash Flow,&rdquo; most recent annual (TTM) column, in millions.</span></span></span></label>
+                <label><span class="label-text">Operating Cash Flow ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The cash a company's core business actually generated last year, before any spending on equipment, expansion, or dividends. Considered one of the harder numbers to fake, since it's tracking real cash, not accounting profit.<br><br><b>Yahoo Finance:</b> search the ticker &rarr; <i>Financials</i> tab &rarr; <i>Cash Flow</i> &rarr; look for &ldquo;Operating Cash Flow,&rdquo; most recent annual (TTM) column, in millions.</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
                     <input type="number" id="ocf" value="2887" step="any">
@@ -447,7 +452,7 @@
             </div>
 
             <div class="form-group">
-                <label><span class="label-text">Total Cash Cost of SBC ($M)<span class="info-icon">i<span class="tooltip">Companies often pay employees partly in stock instead of cash. That looks "free" on the income statement, but it quietly shrinks your ownership slice over time. This field is the real cash-equivalent cost of that dilution — not the accounting expense line.<br><br><b>Yahoo Finance doesn't show this directly.</b> Closest quick stand-in: <i>Financials</i> &rarr; <i>Cash Flow</i> &rarr; &ldquo;Stock-Based Compensation&rdquo; (understates the true cost, but works for a first pass). A more accurate figure also adds cash spent buying back shares to offset new grants, plus taxes withheld when employee stock vests — both found in the 10-K, not on Yahoo.</span></span></span></label>
+                <label><span class="label-text">Total Cash Cost of SBC ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">Companies often pay employees partly in stock instead of cash. That looks "free" on the income statement, but it quietly shrinks your ownership slice over time. This field is the real cash-equivalent cost of that dilution — not the accounting expense line.<br><br><b>Yahoo Finance doesn't show this directly.</b> Closest quick stand-in: <i>Financials</i> &rarr; <i>Cash Flow</i> &rarr; &ldquo;Stock-Based Compensation&rdquo; (understates the true cost, but works for a first pass). A more accurate figure also adds cash spent buying back shares to offset new grants, plus taxes withheld when employee stock vests — both found in the 10-K, not on Yahoo.</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
                     <input type="number" id="sbc" value="95" step="any">
@@ -455,14 +460,14 @@
             </div>
 
             <div class="form-group">
-                <label><span class="label-text">Shares Outstanding (Millions)<span class="info-icon">i<span class="tooltip">How many total slices the company is cut into. Every dollar of profit gets divided across this many shares — more shares means each one is worth less, all else equal.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding.&rdquo;</span></span></span></label>
+                <label><span class="label-text">Shares Outstanding (Millions)<span class="info-icon" tabindex="0">i<span class="tooltip">How many total slices the company is cut into. Every dollar of profit gets divided across this many shares — more shares means each one is worth less, all else equal.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding.&rdquo;</span></span></span></label>
                 <input type="number" id="shares" value="413" step="any">
             </div>
 
             <div class="divider"></div>
 
             <div class="form-group">
-                <label><span class="label-text">Expected Perpetual Growth Rate<span class="info-icon">i<span class="tooltip">Your own assumption for how fast the company's cash profits keep growing, far into the future. This is a judgment call, not a published fact — nobody actually knows this number.<br><br>No single Yahoo Finance number gives you this. A reasonable starting point: <i>Financials</i> &rarr; <i>Income Statement</i> &rarr; compare Revenue over the last 3&ndash;5 years, or check the <i>Analysis</i> tab for Wall Street's long-term growth estimate.</span></span></span></label>
+                <label><span class="label-text">Expected Perpetual Growth Rate<span class="info-icon" tabindex="0">i<span class="tooltip">Your own assumption for how fast the company's cash profits keep growing, far into the future. This is a judgment call, not a published fact — nobody actually knows this number.<br><br>No single Yahoo Finance number gives you this. A reasonable starting point: <i>Financials</i> &rarr; <i>Income Statement</i> &rarr; compare Revenue over the last 3&ndash;5 years, or check the <i>Analysis</i> tab for Wall Street's long-term growth estimate.</span></span></span></label>
                 <div class="input-wrapper has-percent">
                     <input type="number" id="growth" value="5" step="0.1">
                     <span class="percent-icon">%</span>
@@ -470,7 +475,7 @@
             </div>
 
             <div class="form-group">
-                <label><span class="label-text">Annual Share Dilution Rate<span class="info-icon">i<span class="tooltip">Some companies quietly issue more shares each year, which dilutes you. Others buy back stock and shrink the share count, which helps you. This is the net rate of that change — negative means shares outstanding are shrinking.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding&rdquo; &mdash; compare this year's figure to last year's (from the company's prior annual report) and work out the percent change.</span></span></span></label>
+                <label><span class="label-text">Annual Share Dilution Rate<span class="info-icon" tabindex="0">i<span class="tooltip">Some companies quietly issue more shares each year, which dilutes you. Others buy back stock and shrink the share count, which helps you. This is the net rate of that change — negative means shares outstanding are shrinking.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding&rdquo; &mdash; compare this year's figure to last year's (from the company's prior annual report) and work out the percent change.</span></span></span></label>
                 <div class="input-wrapper has-percent">
                     <input type="number" id="dilution" value="-2" step="0.1">
                     <span class="percent-icon">%</span>
@@ -478,13 +483,13 @@
             </div>
 
             <div class="form-group">
-                <label><span class="label-text">Year-15 Terminal Multiple<span class="info-icon">i<span class="tooltip">A guess at what multiple of its Year-15 profits the market might still pay for this business 15 years from now, once growth has slowed to a crawl.<br><br>Not on Yahoo Finance directly. A reasonable anchor: the current P/E ratio of mature, slow-growing companies in the same industry (<i>Statistics</i> tab &rarr; &ldquo;PE Ratio&rdquo;), or a conservative market-average figure like 12&ndash;15x.</span></span></span></label>
+                <label><span class="label-text">Year-15 Terminal Multiple<span class="info-icon" tabindex="0">i<span class="tooltip">A guess at what multiple of its Year-15 profits the market might still pay for this business 15 years from now, once growth has slowed to a crawl.<br><br>Not on Yahoo Finance directly. A reasonable anchor: the current P/E ratio of mature, slow-growing companies in the same industry (<i>Statistics</i> tab &rarr; &ldquo;PE Ratio&rdquo;), or a conservative market-average figure like 12&ndash;15x.</span></span></span></label>
                 <input type="number" id="termMult" value="15" step="0.1" min="0">
             </div>
 
             <div class="form-group">
                 <label>
-                    <span class="label-text">Perpetuity Weight in Hybrid IV<span class="info-icon">i<span class="tooltip">How much you trust an infinite "forever growth" estimate versus a more conservative 15-year cutoff. 100% leans entirely on the optimistic infinite-growth math; 0% relies entirely on the more cautious 15-year model.<br><br>Pure judgment call &mdash; no market data for this. Start at 50/50 and shift it based on how confident you are in the company's long-term durability.</span></span></span>
+                    <span class="label-text">Perpetuity Weight in Hybrid IV<span class="info-icon" tabindex="0">i<span class="tooltip">How much you trust an infinite "forever growth" estimate versus a more conservative 15-year cutoff. 100% leans entirely on the optimistic infinite-growth math; 0% relies entirely on the more cautious 15-year model.<br><br>Pure judgment call &mdash; no market data for this. Start at 50/50 and shift it based on how confident you are in the company's long-term durability.</span></span></span>
                     <span class="slider-value" id="blend-display">0% / 100%</span>
                 </label>
                 <input type="range" id="blend-weight" min="0" max="100" value="0" step="5">
@@ -493,7 +498,7 @@
             <div class="divider"></div>
 
             <div class="form-group">
-                <label><span class="label-text">Current Stock Price<span class="info-icon">i<span class="tooltip">What the stock costs to buy right now.<br><br><b>Yahoo Finance:</b> the big number at the top of the stock's page.</span></span></span></label>
+                <label><span class="label-text">Current Stock Price<span class="info-icon" tabindex="0">i<span class="tooltip">What the stock costs to buy right now.<br><br><b>Yahoo Finance:</b> the big number at the top of the stock's page.</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
                     <input type="number" id="price" value="75.84" step="0.01">
@@ -502,7 +507,7 @@
 
             <div class="form-group">
                 <label>
-                    <span class="label-text">Target Return / Discount Rate<span class="info-icon">i<span class="tooltip">The annual return you personally want from this investment. A well-known value investor's own bar is 15% a year — "IV15." The lower settings (8-12%) show cheaper, less demanding fair-value estimates for comparison.<br><br>Not a lookup &mdash; this is the return <b>you</b> want. Slide it to set your own bar.</span></span></span>
+                    <span class="label-text">Target Return / Discount Rate<span class="info-icon" tabindex="0">i<span class="tooltip">The annual return you personally want from this investment. A well-known value investor's own bar is 15% a year — "IV15." The lower settings (8-12%) show cheaper, less demanding fair-value estimates for comparison.<br><br>Not a lookup &mdash; this is the return <b>you</b> want. Slide it to set your own bar.</span></span></span>
                     <span class="slider-value" id="rate-display">IV15 (15%)</span>
                 </label>
                 <input type="range" id="discount-rate" min="5" max="15" value="15" step="1">
@@ -512,29 +517,29 @@
         <div class="results-panel">
             <div>
                 <div class="result-item">
-                    <span class="result-label label-text">True Owners' Earnings (CF0)<span class="info-icon">i<span class="tooltip">Operating Cash Flow minus the true cash cost of stock-based compensation. A cash-based substitute for GAAP net income, and the base cash flow fed into both valuation legs below.</span></span></span>
+                    <span class="result-label label-text">True Owners' Earnings (CF0)<span class="info-icon" tabindex="0">i<span class="tooltip">Operating Cash Flow minus the true cash cost of stock-based compensation. A cash-based substitute for GAAP net income, and the base cash flow fed into both valuation legs below.</span></span></span>
                     <span class="result-value" id="res-oe">$0 M</span>
                 </div>
                 <div class="result-item" style="border-bottom: none;">
-                    <span class="result-label label-text">Owners' Earnings Per Share<span class="info-icon">i<span class="tooltip">True Owners' Earnings divided by Shares Outstanding.</span></span></span>
+                    <span class="result-label label-text">Owners' Earnings Per Share<span class="info-icon" tabindex="0">i<span class="tooltip">True Owners' Earnings divided by Shares Outstanding.</span></span></span>
                     <span class="result-value" id="res-eps">$0.00</span>
                 </div>
             </div>
 
             <div class="highlight-card">
-                <span class="result-label label-text" id="main-iv-label">IV15 Value<span class="info-icon">i<span class="tooltip">The blended fair value at your selected required-return rate — a weighted average of the infinite-growth leg and the 15-year-cutoff-with-terminal-multiple leg.</span></span></span>
+                <span class="result-label label-text" id="main-iv-label">IV15 Value<span class="info-icon" tabindex="0">i<span class="tooltip">The blended fair value at your selected required-return rate — a weighted average of the infinite-growth leg and the 15-year-cutoff-with-terminal-multiple leg.</span></span></span>
                 <span class="sub-label">Max price to guarantee a <span id="target-rate-sub">15</span>% annualized return</span>
                 <div class="result-value" id="res-iv">$0.00</div>
                 <div id="multiple-badge" class="badge">&nbsp;</div>
                 <span class="sub-label" id="blend-breakdown" style="margin-top: 0.5rem;">Perpetuity leg: $0.00 | Year-15 leg: $0.00</span>
                 <div class="mos-target">
-                    <span class="label-text">Conservative Buy Target<span class="info-icon">i<span class="tooltip">A more cautious price than fair value itself &mdash; 20% cheaper (0.8&times; the IV<span id="mos-rate-sub">15</span> value above). Rather than paying exactly what a business is worth, this leaves room for your assumptions being a bit too optimistic before you act.</span></span></span>
+                    <span class="label-text">Conservative Buy Target<span class="info-icon" tabindex="0">i<span class="tooltip">A more cautious price than fair value itself &mdash; 20% cheaper (0.8&times; the IV<span id="mos-rate-sub">15</span> value above). Rather than paying exactly what a business is worth, this leaves room for your assumptions being a bit too optimistic before you act.</span></span></span>
                     <span class="mos-value" id="res-mos">$0.00</span>
                 </div>
             </div>
 
             <div>
-                <span class="result-label label-text" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Reference Values (Different Required-Return Rates)<span class="info-icon">i<span class="tooltip" style="text-transform: none; letter-spacing: normal;">Same formula run at lower required-return rates, for comparison.</span></span></span>
+                <span class="result-label label-text" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Reference Values (Different Required-Return Rates)<span class="info-icon" tabindex="0">i<span class="tooltip" style="text-transform: none; letter-spacing: normal;">Same formula run at lower required-return rates, for comparison.</span></span></span>
                 <div class="iv-grid">
                     <div class="iv-box" id="box-8">
                         <div class="iv-label">IV8 (Fair Value)</div>
@@ -738,20 +743,20 @@
     // Initial calculation
     calculate();
 
-    // Tooltip controller: positions each tooltip so it never runs off the
-    // viewport, and keeps it open (with a short grace period) when the
-    // mouse travels from the icon into the tooltip itself to read it.
+    // Tooltip positioning: computed once up front (and on resize), not on
+    // every hover — layout dimensions are readable via getBoundingClientRect
+    // even while an element is visibility:hidden, so there's no need to
+    // recompute per-interaction. Showing/hiding itself is left entirely to
+    // native CSS :hover/:focus-within (see stylesheet), which has no timing
+    // races and can't flicker the way competing JS show/hide state could.
     (function () {
-        const GRACE_MS = 300;
         const EDGE_MARGIN = 12;
 
-        document.querySelectorAll('.info-icon').forEach(icon => {
-            const tooltip = icon.querySelector('.tooltip');
-            if (!tooltip) return;
-            let hideTimer = null;
+        function positionAllTooltips() {
+            document.querySelectorAll('.info-icon').forEach(icon => {
+                const tooltip = icon.querySelector('.tooltip');
+                if (!tooltip) return;
 
-            function positionTooltip() {
-                // Reset to default centered-above placement before measuring.
                 tooltip.classList.remove('flip-down');
                 tooltip.style.transform = 'translateX(-50%)';
 
@@ -774,28 +779,16 @@
                 if (shift !== 0) {
                     tooltip.style.transform = `translateX(calc(-50% + ${shift}px))`;
                 }
-            }
+            });
+        }
 
-            function show() {
-                clearTimeout(hideTimer);
-                tooltip.classList.add('is-open');
-                positionTooltip();
-            }
+        positionAllTooltips();
 
-            function scheduleHide() {
-                clearTimeout(hideTimer);
-                hideTimer = setTimeout(() => {
-                    tooltip.classList.remove('is-open');
-                }, GRACE_MS);
-            }
-
-            icon.addEventListener('mouseenter', show);
-            icon.addEventListener('focus', show);
-            icon.addEventListener('mouseleave', scheduleHide);
-            icon.addEventListener('blur', scheduleHide);
-            // Hovering the tooltip itself (once open) keeps it open.
-            tooltip.addEventListener('mouseenter', () => clearTimeout(hideTimer));
-            tooltip.addEventListener('mouseleave', scheduleHide);
+        // Re-measure on resize only (debounced), since layout can shift.
+        let resizeTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(positionAllTooltips, 150);
         });
     })();
 </script>
