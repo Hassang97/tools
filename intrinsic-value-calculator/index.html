@@ -391,6 +391,23 @@
             margin-top: 0.25rem;
         }
 
+        input.auto-filled {
+            border-color: var(--accent);
+            background: #ecfdf5;
+        }
+
+        .growth-chip {
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .growth-chip:hover {
+            color: var(--primary-hover);
+        }
+
         .glossary {
             padding: 1.75rem 2rem 2rem;
             border-top: 1px solid var(--border);
@@ -437,13 +454,13 @@
     <div class="header">
         <h1>Intrinsic Value Calculator</h1>
         <p>Model a stock's fair value across different required-return hurdles (IV8 to IV15)</p>
-        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Prefilled with real Zoetis (ZTS) figures as a reference example: OCF, SBC, shares, and price from its most recent filings/quote (Aug 2026). Growth (5%) matches ZTS's actual 4-year revenue CAGR, and dilution (-2%) matches its actual 2023&ndash;2025 share-count shrinkage, though both are still judgment calls about the future, not guarantees. Just overwrite any field to model a different stock.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Enter a ticker and click Fetch to auto-fill Operating Cash Flow, SBC, Shares Outstanding, Price, and a suggested growth rate (from historical revenue). Auto-filled fields are highlighted in green &mdash; overwrite any of them to use your own numbers instead. Dilution and terminal multiple always stay manual.</p>
     </div>
 
     <div class="content">
         <div class="inputs-panel">
             <div class="form-group">
-                <label><span class="label-text">Auto-Fill From Ticker<span class="info-icon" tabindex="0">i<span class="tooltip">Pulls Operating Cash Flow, SBC, Shares Outstanding, and Price from Financial Modeling Prep's free API (most recent annual filing + latest quote). Growth, dilution, and terminal multiple stay manual, since those are judgment calls, not lookups.</span></span></span></label>
+                <label><span class="label-text">Auto-Fill From Ticker<span class="info-icon" tabindex="0">i<span class="tooltip">Pulls Operating Cash Flow, SBC, Shares Outstanding, and Price from Financial Modeling Prep's free API (most recent annual filing + latest quote), plus a suggested growth rate from historical revenue CAGR. Dilution and terminal multiple stay manual, since those are judgment calls, not lookups.</span></span></span></label>
                 <div style="display: flex; gap: 0.5rem;">
                     <input type="text" id="ticker" placeholder="e.g. AAPL" style="text-transform: uppercase;">
                     <button type="button" id="fetch-btn" style="white-space: nowrap; padding: 0 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--primary); color: #fff; font-size: 0.875rem; font-weight: 600; cursor: pointer;">Fetch</button>
@@ -457,7 +474,7 @@
                 <label><span class="label-text">Operating Cash Flow ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">Cash the core business actually generated last year, harder to fake than accounting profit.<br><br><b>Yahoo Finance:</b> Financials &rarr; Cash Flow &rarr; &ldquo;Operating Cash Flow&rdquo; (most recent annual/TTM, in millions).</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
-                    <input type="number" id="ocf" value="2887" step="any">
+                    <input type="number" id="ocf" placeholder="e.g. 2887" step="any">
                 </div>
             </div>
 
@@ -465,13 +482,13 @@
                 <label><span class="label-text">Total Cash Cost of SBC ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The real cash-equivalent cost of paying employees in stock, not the GAAP expense line, which looks "free" but quietly dilutes you.<br><br><b>Yahoo doesn't show this directly.</b> Stand-in: Financials &rarr; Cash Flow &rarr; &ldquo;Stock-Based Compensation&rdquo; (understates the true cost, but works for a first pass).</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
-                    <input type="number" id="sbc" value="95" step="any">
+                    <input type="number" id="sbc" placeholder="e.g. 95" step="any">
                 </div>
             </div>
 
             <div class="form-group">
                 <label><span class="label-text">Shares Outstanding (Millions)<span class="info-icon" tabindex="0">i<span class="tooltip">How many total slices the company is cut into. Every dollar of profit gets divided across this many shares, so more shares means each one is worth less, all else equal.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding.&rdquo;</span></span></span></label>
-                <input type="number" id="shares" value="413" step="any">
+                <input type="number" id="shares" placeholder="e.g. 413" step="any">
             </div>
 
             <div class="divider"></div>
@@ -479,9 +496,10 @@
             <div class="form-group">
                 <label><span class="label-text">Expected Perpetual Growth Rate<span class="info-icon" tabindex="0">i<span class="tooltip">Your own assumption for how fast cash profits keep growing, far into the future. A judgment call, not a published fact.<br><br>Rough starting point: <i>Financials</i> &rarr; Revenue over the last 3&ndash;5 years, or the <i>Analysis</i> tab's long-term growth estimate.</span></span></span></label>
                 <div class="input-wrapper has-percent">
-                    <input type="number" id="growth" value="5" step="0.1">
+                    <input type="number" id="growth" placeholder="e.g. 5" step="0.1">
                     <span class="percent-icon">%</span>
                 </div>
+                <div id="growth-suggestions" style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.4rem;"></div>
             </div>
 
             <div class="form-group">
@@ -511,7 +529,7 @@
                 <label><span class="label-text">Current Stock Price<span class="info-icon" tabindex="0">i<span class="tooltip">What the stock costs to buy right now.<br><br><b>Yahoo Finance:</b> the big number at the top of the stock's page.</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
-                    <input type="number" id="price" value="75.84" step="0.01">
+                    <input type="number" id="price" placeholder="e.g. 75.84" step="0.01">
                 </div>
             </div>
 
@@ -745,23 +763,45 @@
         });
     }
 
-    // Attach listeners
+    // Attach listeners. A manual edit to a field that was auto-filled from
+    // the API clears its highlight, since it's now the user's own number.
     document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', calculate);
+        input.addEventListener('input', () => {
+            input.classList.remove('auto-filled');
+            calculate();
+        });
     });
 
     // Initial calculation
     calculate();
 
-    // Auto-fill OCF, SBC, shares, and price from Financial Modeling Prep's
-    // free API. Growth/dilution/terminal multiple stay manual, since those
-    // are judgment calls the tool was never trying to look up.
+    // Auto-fill OCF, SBC, shares, price, and a suggested growth rate from
+    // Financial Modeling Prep's free API. Dilution and terminal multiple
+    // stay manual, since those are judgment calls the tool never looked up.
     const FMP_API_KEY = '08KjsknwFjOxw8Q6fiCOOZjkR8jrYeBw';
     const FMP_BASE = 'https://financialmodelingprep.com/stable';
+
+    function setAutoFilled(id, value) {
+        const el = document.getElementById(id);
+        el.value = value;
+        el.classList.add('auto-filled');
+    }
+
+    // Revenue CAGR over `years`, using the most recent value (index 0) and
+    // the value `years` annual reports back. Returns null if unavailable
+    // (not enough history yet, or a non-positive base revenue).
+    function revenueCAGR(annualRevenues, years) {
+        if (annualRevenues.length <= years) return null;
+        const latest = annualRevenues[0];
+        const base = annualRevenues[years];
+        if (base <= 0 || latest <= 0) return null;
+        return (Math.pow(latest / base, 1 / years) - 1) * 100;
+    }
 
     async function fetchTickerData() {
         const tickerInput = document.getElementById('ticker');
         const statusEl = document.getElementById('fetch-status');
+        const growthSuggestEl = document.getElementById('growth-suggestions');
         const fetchBtn = document.getElementById('fetch-btn');
         const ticker = tickerInput.value.trim().toUpperCase();
 
@@ -772,16 +812,20 @@
 
         fetchBtn.disabled = true;
         statusEl.textContent = 'Fetching…';
+        growthSuggestEl.textContent = '';
 
         try {
-            const [quoteRes, cashFlowRes, sharesRes] = await Promise.all([
+            // FMP's free tier caps annual history at 5 reports, which
+            // supports at most a 4-year CAGR (5 data points = 4 intervals).
+            const [quoteRes, cashFlowRes, sharesRes, incomeRes] = await Promise.all([
                 fetch(`${FMP_BASE}/quote?symbol=${ticker}&apikey=${FMP_API_KEY}`),
                 fetch(`${FMP_BASE}/cash-flow-statement?symbol=${ticker}&period=annual&limit=1&apikey=${FMP_API_KEY}`),
-                fetch(`${FMP_BASE}/shares-float?symbol=${ticker}&apikey=${FMP_API_KEY}`)
+                fetch(`${FMP_BASE}/shares-float?symbol=${ticker}&apikey=${FMP_API_KEY}`),
+                fetch(`${FMP_BASE}/income-statement?symbol=${ticker}&period=annual&limit=5&apikey=${FMP_API_KEY}`)
             ]);
 
-            const [quoteData, cashFlowData, sharesData] = await Promise.all([
-                quoteRes.json(), cashFlowRes.json(), sharesRes.json()
+            const [quoteData, cashFlowData, sharesData, incomeData] = await Promise.all([
+                quoteRes.json(), cashFlowRes.json(), sharesRes.json(), incomeRes.json()
             ]);
 
             const quote = Array.isArray(quoteData) ? quoteData[0] : null;
@@ -793,15 +837,42 @@
                 return;
             }
 
-            document.getElementById('ocf').value = (cashFlow.netCashProvidedByOperatingActivities / 1e6).toFixed(1);
-            document.getElementById('sbc').value = (cashFlow.stockBasedCompensation / 1e6).toFixed(1);
-            document.getElementById('shares').value = (shares.outstandingShares / 1e6).toFixed(1);
-            document.getElementById('price').value = quote.price.toFixed(2);
+            setAutoFilled('ocf', (cashFlow.netCashProvidedByOperatingActivities / 1e6).toFixed(1));
+            setAutoFilled('sbc', (cashFlow.stockBasedCompensation / 1e6).toFixed(1));
+            setAutoFilled('shares', (shares.outstandingShares / 1e6).toFixed(1));
+            setAutoFilled('price', quote.price.toFixed(2));
+
+            // Growth suggestions from historical revenue CAGR.
+            let growthNote = '';
+            if (Array.isArray(incomeData) && incomeData.length >= 2) {
+                const revenues = incomeData.map(r => r.revenue);
+                const cagr3 = revenueCAGR(revenues, 3);
+                const cagr4 = revenueCAGR(revenues, 4);
+                const primary = cagr4 !== null ? cagr4 : cagr3;
+                const primaryYears = cagr4 !== null ? 4 : 3;
+
+                if (primary !== null) {
+                    setAutoFilled('growth', primary.toFixed(1));
+                    const chips = [];
+                    if (cagr3 !== null && primaryYears !== 3) {
+                        chips.push(`<span class="growth-chip" data-value="${cagr3.toFixed(1)}">use 3yr: ${cagr3.toFixed(1)}%</span>`);
+                    }
+                    if (cagr4 !== null && primaryYears !== 4) {
+                        chips.push(`<span class="growth-chip" data-value="${cagr4.toFixed(1)}">use 4yr: ${cagr4.toFixed(1)}%</span>`);
+                    }
+                    growthSuggestEl.innerHTML = `Filled with ${primaryYears}yr revenue CAGR (${primary.toFixed(1)}%).` +
+                        (chips.length ? ` Or ${chips.join(' · ')}` : '');
+                } else {
+                    growthNote = ' Not enough history for a revenue CAGR suggestion — growth left as-is.';
+                }
+            } else {
+                growthNote = ' Not enough history for a revenue CAGR suggestion — growth left as-is.';
+            }
 
             calculate();
-            statusEl.textContent = `Loaded ${ticker} (fiscal year ${cashFlow.fiscalYear}). Growth, dilution, and terminal multiple are still yours to set.`;
+            statusEl.textContent = `Loaded ${ticker} (fiscal year ${cashFlow.fiscalYear}).${growthNote} Dilution and terminal multiple are still yours to set.`;
         } catch (err) {
-            statusEl.textContent = 'Fetch failed — check your connection and try again.';
+            statusEl.textContent = `"${ticker}" isn't available on this API's free tier (some smaller/mid-cap tickers are restricted), or the request failed. Try a large-cap ticker (e.g. AAPL, MSFT) or fill in the fields manually.`;
         } finally {
             fetchBtn.disabled = false;
         }
@@ -813,6 +884,13 @@
             e.preventDefault();
             fetchTickerData();
         }
+    });
+
+    // Clicking a growth-rate suggestion chip applies that value instead.
+    document.getElementById('growth-suggestions').addEventListener('click', (e) => {
+        if (!e.target.classList.contains('growth-chip')) return;
+        setAutoFilled('growth', e.target.dataset.value);
+        calculate();
     });
 
     // Tooltip positioning: computed once up front (and on resize), not on
