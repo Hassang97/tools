@@ -443,6 +443,17 @@
     <div class="content">
         <div class="inputs-panel">
             <div class="form-group">
+                <label><span class="label-text">Auto-Fill From Ticker<span class="info-icon" tabindex="0">i<span class="tooltip">Pulls Operating Cash Flow, SBC, Shares Outstanding, and Price from Financial Modeling Prep's free API (most recent annual filing + latest quote). Growth, dilution, and terminal multiple stay manual, since those are judgment calls, not lookups.</span></span></span></label>
+                <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="ticker" placeholder="e.g. AAPL" style="text-transform: uppercase;">
+                    <button type="button" id="fetch-btn" style="white-space: nowrap; padding: 0 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--primary); color: #fff; font-size: 0.875rem; font-weight: 600; cursor: pointer;">Fetch</button>
+                </div>
+                <div id="fetch-status" style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.4rem;"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="form-group">
                 <label><span class="label-text">Operating Cash Flow ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">Cash the core business actually generated last year, harder to fake than accounting profit.<br><br><b>Yahoo Finance:</b> Financials &rarr; Cash Flow &rarr; &ldquo;Operating Cash Flow&rdquo; (most recent annual/TTM, in millions).</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
@@ -741,6 +752,68 @@
 
     // Initial calculation
     calculate();
+
+    // Auto-fill OCF, SBC, shares, and price from Financial Modeling Prep's
+    // free API. Growth/dilution/terminal multiple stay manual, since those
+    // are judgment calls the tool was never trying to look up.
+    const FMP_API_KEY = '08KjsknwFjOxw8Q6fiCOOZjkR8jrYeBw';
+    const FMP_BASE = 'https://financialmodelingprep.com/stable';
+
+    async function fetchTickerData() {
+        const tickerInput = document.getElementById('ticker');
+        const statusEl = document.getElementById('fetch-status');
+        const fetchBtn = document.getElementById('fetch-btn');
+        const ticker = tickerInput.value.trim().toUpperCase();
+
+        if (!ticker) {
+            statusEl.textContent = 'Enter a ticker first.';
+            return;
+        }
+
+        fetchBtn.disabled = true;
+        statusEl.textContent = 'Fetching…';
+
+        try {
+            const [quoteRes, cashFlowRes, sharesRes] = await Promise.all([
+                fetch(`${FMP_BASE}/quote?symbol=${ticker}&apikey=${FMP_API_KEY}`),
+                fetch(`${FMP_BASE}/cash-flow-statement?symbol=${ticker}&period=annual&limit=1&apikey=${FMP_API_KEY}`),
+                fetch(`${FMP_BASE}/shares-float?symbol=${ticker}&apikey=${FMP_API_KEY}`)
+            ]);
+
+            const [quoteData, cashFlowData, sharesData] = await Promise.all([
+                quoteRes.json(), cashFlowRes.json(), sharesRes.json()
+            ]);
+
+            const quote = Array.isArray(quoteData) ? quoteData[0] : null;
+            const cashFlow = Array.isArray(cashFlowData) ? cashFlowData[0] : null;
+            const shares = Array.isArray(sharesData) ? sharesData[0] : null;
+
+            if (!quote || !cashFlow || !shares) {
+                statusEl.textContent = `No data found for "${ticker}". Check the ticker and try again.`;
+                return;
+            }
+
+            document.getElementById('ocf').value = (cashFlow.netCashProvidedByOperatingActivities / 1e6).toFixed(1);
+            document.getElementById('sbc').value = (cashFlow.stockBasedCompensation / 1e6).toFixed(1);
+            document.getElementById('shares').value = (shares.outstandingShares / 1e6).toFixed(1);
+            document.getElementById('price').value = quote.price.toFixed(2);
+
+            calculate();
+            statusEl.textContent = `Loaded ${ticker} (fiscal year ${cashFlow.fiscalYear}). Growth, dilution, and terminal multiple are still yours to set.`;
+        } catch (err) {
+            statusEl.textContent = 'Fetch failed — check your connection and try again.';
+        } finally {
+            fetchBtn.disabled = false;
+        }
+    }
+
+    document.getElementById('fetch-btn').addEventListener('click', fetchTickerData);
+    document.getElementById('ticker').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            fetchTickerData();
+        }
+    });
 
     // Tooltip positioning: computed once up front (and on resize), not on
     // every hover, since layout dimensions are readable via getBoundingClientRect
