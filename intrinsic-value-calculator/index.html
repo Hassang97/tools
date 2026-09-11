@@ -454,13 +454,13 @@
     <div class="header">
         <h1>Intrinsic Value Calculator</h1>
         <p>Model a stock's fair value across different required-return hurdles (IV8 to IV15)</p>
-        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Enter a ticker and click Fetch to auto-fill Operating Cash Flow, SBC, Shares Outstanding, Price, and suggested growth/dilution rates (from historical revenue and share-count trends). Auto-filled fields are highlighted in green &mdash; overwrite any of them to use your own numbers instead. Terminal multiple always stays manual, since there's no market data for it.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Enter a ticker and click Fetch to auto-fill Operating Cash Flow, SBC, Shares Outstanding, Price, Net Cash Per Share, and suggested growth/dilution rates (from historical revenue and share-count trends). Auto-filled fields are highlighted in green &mdash; overwrite any of them to use your own numbers instead. Terminal multiple always stays manual, since there's no market data for it.</p>
     </div>
 
     <div class="content">
         <div class="inputs-panel">
             <div class="form-group">
-                <label><span class="label-text">Auto-Fill From Ticker<span class="info-icon" tabindex="0">i<span class="tooltip">Pulls Operating Cash Flow, SBC, Shares Outstanding, and Price from Financial Modeling Prep's free API (most recent annual filing + latest quote), plus suggested growth and dilution rates from historical revenue and share-count CAGR. Terminal multiple stays manual, since it's a pure judgment call with no market data behind it.</span></span></span></label>
+                <label><span class="label-text">Auto-Fill From Ticker<span class="info-icon" tabindex="0">i<span class="tooltip">Pulls Operating Cash Flow, SBC, Shares Outstanding, Price, and Net Cash Per Share from Financial Modeling Prep's free API (most recent annual filing + latest quote), plus suggested growth and dilution rates from historical revenue and share-count CAGR. Terminal multiple stays manual, since it's a pure judgment call with no market data behind it.</span></span></span></label>
                 <div style="display: flex; gap: 0.5rem;">
                     <input type="text" id="ticker" placeholder="e.g. AAPL" style="text-transform: uppercase;">
                     <button type="button" id="fetch-btn" style="white-space: nowrap; padding: 0 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--primary); color: #fff; font-size: 0.875rem; font-weight: 600; cursor: pointer;">Fetch</button>
@@ -510,6 +510,14 @@
                 <input type="number" id="shares" placeholder="e.g. 413" step="any">
             </div>
 
+            <div class="form-group">
+                <label><span class="label-text">Net Cash Per Share ($)<span class="info-icon" tabindex="0">i<span class="tooltip">Cash + short-term investments minus total debt, per share. Added on top of the discounted owners'-earnings value, since it's realized value sitting on the balance sheet rather than a projection. Can be negative for indebted companies.<br><br><b>Yahoo Finance:</b> Balance Sheet &rarr; (Cash &amp; Short-Term Investments &minus; Total Debt) &divide; Shares Outstanding.</span></span></span></label>
+                <div class="input-wrapper has-icon">
+                    <span class="input-icon">$</span>
+                    <input type="number" id="net-cash" placeholder="e.g. 1.50" step="0.01">
+                </div>
+            </div>
+
             <div class="divider"></div>
 
             <div class="form-group">
@@ -557,7 +565,7 @@
             </div>
 
             <div class="highlight-card">
-                <span class="result-label label-text" id="main-iv-label">IV15 Value<span class="info-icon" tabindex="0">i<span class="tooltip">The blended fair value at your selected required-return rate, a weighted average of the infinite-growth leg and the 15-year-cutoff-with-terminal-multiple leg.</span></span></span>
+                <span class="result-label label-text" id="main-iv-label">IV15 Value<span class="info-icon" tabindex="0">i<span class="tooltip">The blended fair value at your selected required-return rate: a weighted average of the infinite-growth leg and the 15-year-cutoff-with-terminal-multiple leg, plus Net Cash Per Share added on top.</span></span></span>
                 <span class="sub-label">Max price to guarantee a <span id="target-rate-sub">15</span>% annualized return</span>
                 <div class="result-value" id="res-iv">$0.00</div>
                 <div id="multiple-badge" class="badge">&nbsp;</div>
@@ -624,6 +632,10 @@
                 <div class="glossary-def">The second estimate: a more conservative case that only projects 15 years out, then assumes the business is valued at a set earnings multiple at that point instead of growing forever.</div>
             </div>
             <div class="glossary-item">
+                <div class="glossary-term">Net Cash Per Share</div>
+                <div class="glossary-def">Cash and short-term investments minus total debt, divided by shares outstanding. Added on top of the discounted owners'-earnings value at full, undiscounted value, since it's cash already on the balance sheet rather than a future projection. Negative for companies carrying more debt than cash.</div>
+            </div>
+            <div class="glossary-item">
                 <div class="glossary-term">Terminal Multiple</div>
                 <div class="glossary-def">The earnings multiple assumed for the Year-15 leg's ending value: essentially "what P/E ratio might this business still command in 15 years," once its growth has matured.</div>
             </div>
@@ -679,11 +691,16 @@
     // Guards against nonsense output: growth too close to/above the
     // effective hurdle (Infinity), negative/zero owners' earnings, or
     // any other non-finite result. Returns display text instead of a number.
-    function formatIV(value, cfPerShare) {
+    // `netCashPerShare` (cash + short-term investments − debt, per share) is
+    // added on top once the earnings-based PV clears those guards, matching
+    // Burry's stated method of adding net cash per share to owners'-earnings
+    // PV rather than folding it into the discounted cash flows themselves.
+    function formatIV(value, cfPerShare, netCashPerShare = 0) {
         if (cfPerShare <= 0) return 'N/A (neg. earnings)';
         if (!isFinite(value)) return 'N/A (growth ≥ hurdle)';
         if (value <= 0) return 'N/A';
-        return `$${value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        const total = value + netCashPerShare;
+        return `$${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     }
 
     function calculate() {
@@ -697,6 +714,7 @@
         const selectedRate = parseFloat(document.getElementById('discount-rate').value);
         const terminalMultiple = parseFloat(document.getElementById('termMult').value) || 0;
         const perpetuityWeight = parseFloat(document.getElementById('blend-weight').value) / 100;
+        const netCashPerShare = parseFloat(document.getElementById('net-cash').value) || 0;
 
         // Update Slider Displays
         document.getElementById('rate-display').innerText = `IV${selectedRate} (${selectedRate}%)`;
@@ -716,19 +734,22 @@
         const { hybridIV: mainIv, perpetuityIV, finiteIV } = calculateHybridIV(
             cfPerShare, growth, dilution, selectedRate / 100, terminalMultiple, perpetuityWeight
         );
-        document.getElementById('res-iv').innerText = formatIV(mainIv, cfPerShare);
+        document.getElementById('res-iv').innerText = formatIV(mainIv, cfPerShare, netCashPerShare);
         document.getElementById('blend-breakdown').innerText =
-            `Perpetuity leg: ${formatIV(perpetuityIV, cfPerShare)} | Year-15 leg: ${formatIV(finiteIV, cfPerShare)}`;
+            `Perpetuity leg: ${formatIV(perpetuityIV, cfPerShare, netCashPerShare)} | Year-15 leg: ${formatIV(finiteIV, cfPerShare, netCashPerShare)}`;
 
-        // 20% margin-of-safety buy target, off the same main IV
-        const mosTarget = (isFinite(mainIv) && mainIv > 0) ? mainIv * 0.8 : mainIv;
-        document.getElementById('res-mos').innerText = formatIV(mosTarget, cfPerShare);
+        // 20% margin-of-safety buy target off the earnings-based PV, plus
+        // net cash per share added back at full value (not discounted,
+        // since it's already realized rather than a projection).
+        const mosBase = (isFinite(mainIv) && mainIv > 0) ? mainIv * 0.8 : mainIv;
+        document.getElementById('res-mos').innerText = formatIV(mosBase, cfPerShare, netCashPerShare);
 
         // Calculate Multiple (only meaningful if mainIv is a real, positive number)
         const badgeEl = document.getElementById('multiple-badge');
         const resIvEl = document.getElementById('res-iv');
-        if (cfPerShare > 0 && isFinite(mainIv) && mainIv > 0) {
-            const multiple = currentPrice / mainIv;
+        const totalIv = mainIv + netCashPerShare;
+        if (cfPerShare > 0 && isFinite(mainIv) && mainIv > 0 && totalIv > 0) {
+            const multiple = currentPrice / totalIv;
 
             if (multiple < 1.0) {
                 const pctBelow = (1 - multiple) * 100;
@@ -752,7 +773,7 @@
         referenceRates.forEach(rate => {
             const { hybridIV: iv } = calculateHybridIV(cfPerShare, growth, dilution, rate / 100, terminalMultiple, perpetuityWeight);
             const valEl = document.getElementById(`val-iv${rate}`);
-            valEl.innerText = formatIV(iv, cfPerShare);
+            valEl.innerText = formatIV(iv, cfPerShare, netCashPerShare);
             valEl.className = (cfPerShare > 0 && isFinite(iv) && iv > 0) ? 'iv-val' : 'iv-val na';
 
             // Highlight active box
@@ -836,20 +857,22 @@
         try {
             // FMP's free tier caps annual history at 5 reports, which
             // supports at most a 4-year CAGR (5 data points = 4 intervals).
-            const [quoteRes, cashFlowRes, sharesRes, incomeRes] = await Promise.all([
+            const [quoteRes, cashFlowRes, sharesRes, incomeRes, balanceRes] = await Promise.all([
                 fetch(`${FMP_BASE}/quote?symbol=${ticker}&apikey=${FMP_API_KEY}`),
                 fetch(`${FMP_BASE}/cash-flow-statement?symbol=${ticker}&period=annual&limit=1&apikey=${FMP_API_KEY}`),
                 fetch(`${FMP_BASE}/shares-float?symbol=${ticker}&apikey=${FMP_API_KEY}`),
-                fetch(`${FMP_BASE}/income-statement?symbol=${ticker}&period=annual&limit=5&apikey=${FMP_API_KEY}`)
+                fetch(`${FMP_BASE}/income-statement?symbol=${ticker}&period=annual&limit=5&apikey=${FMP_API_KEY}`),
+                fetch(`${FMP_BASE}/balance-sheet-statement?symbol=${ticker}&period=annual&limit=1&apikey=${FMP_API_KEY}`)
             ]);
 
-            const [quoteData, cashFlowData, sharesData, incomeData] = await Promise.all([
-                quoteRes.json(), cashFlowRes.json(), sharesRes.json(), incomeRes.json()
+            const [quoteData, cashFlowData, sharesData, incomeData, balanceData] = await Promise.all([
+                quoteRes.json(), cashFlowRes.json(), sharesRes.json(), incomeRes.json(), balanceRes.json().catch(() => null)
             ]);
 
             const quote = Array.isArray(quoteData) ? quoteData[0] : null;
             const cashFlow = Array.isArray(cashFlowData) ? cashFlowData[0] : null;
             const shares = Array.isArray(sharesData) ? sharesData[0] : null;
+            const balance = Array.isArray(balanceData) ? balanceData[0] : null;
 
             if (!quote || !cashFlow || !shares) {
                 statusEl.textContent = `No data found for "${ticker}". Check the ticker and try again.`;
@@ -860,6 +883,17 @@
             setAutoFilled('sbc', (cashFlow.stockBasedCompensation / 1e6).toFixed(1));
             setAutoFilled('shares', (shares.outstandingShares / 1e6).toFixed(1));
             setAutoFilled('price', quote.price.toFixed(2));
+
+            // Net cash per share (cash + short-term investments − total debt,
+            // ÷ shares outstanding) — added on top of the PV of owners'
+            // earnings in calculate(), matching Burry's stated IV15 method.
+            let netCashNote = '';
+            if (balance && typeof balance.cashAndShortTermInvestments === 'number' && typeof balance.totalDebt === 'number') {
+                const netCashPerShare = (balance.cashAndShortTermInvestments - balance.totalDebt) / shares.outstandingShares;
+                setAutoFilled('net-cash', netCashPerShare.toFixed(2));
+            } else {
+                netCashNote = ' Balance sheet data unavailable — net cash per share left as-is.';
+            }
 
             // Growth suggestion from historical revenue CAGR, and dilution
             // suggestion from historical share-count CAGR (same source
@@ -898,7 +932,7 @@
             }
 
             calculate();
-            statusEl.textContent = `Loaded ${ticker} (fiscal year ${cashFlow.fiscalYear}).${growthNote}${dilutionNote} Terminal multiple is still yours to set.`;
+            statusEl.textContent = `Loaded ${ticker} (fiscal year ${cashFlow.fiscalYear}).${growthNote}${dilutionNote}${netCashNote} Terminal multiple is still yours to set.`;
         } catch (err) {
             statusEl.textContent = `"${ticker}" isn't available on this API's free tier (some smaller/mid-cap tickers are restricted), or the request failed. Try a large-cap ticker (e.g. AAPL, MSFT) or fill in the fields manually.`;
         } finally {
@@ -919,7 +953,7 @@
     // multiple, perpetuity weight, discount rate) are left untouched.
     document.getElementById('clear-btn').addEventListener('click', () => {
         document.getElementById('ticker').value = '';
-        ['ocf', 'sbc', 'shares', 'growth', 'dilution', 'price'].forEach(id => {
+        ['ocf', 'sbc', 'shares', 'growth', 'dilution', 'price', 'net-cash'].forEach(id => {
             const el = document.getElementById(id);
             el.value = '';
             el.classList.remove('auto-filled');
