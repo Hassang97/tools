@@ -454,13 +454,13 @@
     <div class="header">
         <h1>Intrinsic Value Calculator</h1>
         <p>Model a stock's fair value across different required-return hurdles (IV8 to IV15)</p>
-        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Enter a ticker and click Fetch to auto-fill Operating Cash Flow, SBC, Shares Outstanding, Price, and a suggested growth rate (from historical revenue). Auto-filled fields are highlighted in green &mdash; overwrite any of them to use your own numbers instead. Dilution and terminal multiple always stay manual.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Enter a ticker and click Fetch to auto-fill Operating Cash Flow, SBC, Shares Outstanding, Price, and suggested growth/dilution rates (from historical revenue and share-count trends). Auto-filled fields are highlighted in green &mdash; overwrite any of them to use your own numbers instead. Terminal multiple always stays manual, since there's no market data for it.</p>
     </div>
 
     <div class="content">
         <div class="inputs-panel">
             <div class="form-group">
-                <label><span class="label-text">Auto-Fill From Ticker<span class="info-icon" tabindex="0">i<span class="tooltip">Pulls Operating Cash Flow, SBC, Shares Outstanding, and Price from Financial Modeling Prep's free API (most recent annual filing + latest quote), plus a suggested growth rate from historical revenue CAGR. Dilution and terminal multiple stay manual, since those are judgment calls, not lookups.</span></span></span></label>
+                <label><span class="label-text">Auto-Fill From Ticker<span class="info-icon" tabindex="0">i<span class="tooltip">Pulls Operating Cash Flow, SBC, Shares Outstanding, and Price from Financial Modeling Prep's free API (most recent annual filing + latest quote), plus suggested growth and dilution rates from historical revenue and share-count CAGR. Terminal multiple stays manual, since it's a pure judgment call with no market data behind it.</span></span></span></label>
                 <div style="display: flex; gap: 0.5rem;">
                     <input type="text" id="ticker" placeholder="e.g. AAPL" style="text-transform: uppercase;">
                     <button type="button" id="fetch-btn" style="white-space: nowrap; padding: 0 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--primary); color: #fff; font-size: 0.875rem; font-weight: 600; cursor: pointer;">Fetch</button>
@@ -505,9 +505,10 @@
             <div class="form-group">
                 <label><span class="label-text">Annual Share Dilution Rate<span class="info-icon" tabindex="0">i<span class="tooltip">Net change in share count each year: issuing stock dilutes you, buybacks shrink the count and help you. Negative means shares outstanding are shrinking.<br><br><b>Yahoo Finance:</b> compare this year's "Shares Outstanding" (Statistics tab) to last year's.</span></span></span></label>
                 <div class="input-wrapper has-percent">
-                    <input type="number" id="dilution" value="-2" step="0.1">
+                    <input type="number" id="dilution" placeholder="e.g. -2" step="0.1">
                     <span class="percent-icon">%</span>
                 </div>
+                <div id="dilution-suggestions" style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.4rem;"></div>
             </div>
 
             <div class="form-group">
@@ -787,21 +788,37 @@
         el.classList.add('auto-filled');
     }
 
-    // Revenue CAGR over `years`, using the most recent value (index 0) and
-    // the value `years` annual reports back. Returns null if unavailable
-    // (not enough history yet, or a non-positive base revenue).
-    function revenueCAGR(annualRevenues, years) {
-        if (annualRevenues.length <= years) return null;
-        const latest = annualRevenues[0];
-        const base = annualRevenues[years];
+    // CAGR of an annual series over `years`, using the most recent value
+    // (index 0) and the value `years` annual reports back. Returns null if
+    // unavailable (not enough history yet, or a non-positive base value).
+    // Used both for revenue growth and, over share counts, for dilution.
+    function seriesCAGR(annualValues, years) {
+        if (annualValues.length <= years) return null;
+        const latest = annualValues[0];
+        const base = annualValues[years];
         if (base <= 0 || latest <= 0) return null;
         return (Math.pow(latest / base, 1 / years) - 1) * 100;
+    }
+
+    // Builds the "Filled with Xyr ... (Y%). Or use Nyr: Z%" suggestion line
+    // shared by the growth and dilution auto-fill UI.
+    function buildSuggestionHTML(cagr3, cagr4, primary, primaryYears, metricLabel) {
+        const chips = [];
+        if (cagr3 !== null && primaryYears !== 3) {
+            chips.push(`<span class="growth-chip" data-value="${cagr3.toFixed(1)}">use 3yr: ${cagr3.toFixed(1)}%</span>`);
+        }
+        if (cagr4 !== null && primaryYears !== 4) {
+            chips.push(`<span class="growth-chip" data-value="${cagr4.toFixed(1)}">use 4yr: ${cagr4.toFixed(1)}%</span>`);
+        }
+        return `Filled with ${primaryYears}yr ${metricLabel} CAGR (${primary.toFixed(1)}%).` +
+            (chips.length ? ` Or ${chips.join(' · ')}` : '');
     }
 
     async function fetchTickerData() {
         const tickerInput = document.getElementById('ticker');
         const statusEl = document.getElementById('fetch-status');
         const growthSuggestEl = document.getElementById('growth-suggestions');
+        const dilutionSuggestEl = document.getElementById('dilution-suggestions');
         const fetchBtn = document.getElementById('fetch-btn');
         const ticker = tickerInput.value.trim().toUpperCase();
 
@@ -813,6 +830,7 @@
         fetchBtn.disabled = true;
         statusEl.textContent = 'Fetching…';
         growthSuggestEl.textContent = '';
+        dilutionSuggestEl.textContent = '';
 
         try {
             // FMP's free tier caps annual history at 5 reports, which
@@ -842,35 +860,44 @@
             setAutoFilled('shares', (shares.outstandingShares / 1e6).toFixed(1));
             setAutoFilled('price', quote.price.toFixed(2));
 
-            // Growth suggestions from historical revenue CAGR.
+            // Growth suggestion from historical revenue CAGR, and dilution
+            // suggestion from historical share-count CAGR (same source
+            // data, just a different column — no extra API call).
             let growthNote = '';
+            let dilutionNote = '';
             if (Array.isArray(incomeData) && incomeData.length >= 2) {
                 const revenues = incomeData.map(r => r.revenue);
-                const cagr3 = revenueCAGR(revenues, 3);
-                const cagr4 = revenueCAGR(revenues, 4);
-                const primary = cagr4 !== null ? cagr4 : cagr3;
-                const primaryYears = cagr4 !== null ? 4 : 3;
+                const revCagr3 = seriesCAGR(revenues, 3);
+                const revCagr4 = seriesCAGR(revenues, 4);
+                const revPrimary = revCagr4 !== null ? revCagr4 : revCagr3;
+                const revPrimaryYears = revCagr4 !== null ? 4 : 3;
 
-                if (primary !== null) {
-                    setAutoFilled('growth', primary.toFixed(1));
-                    const chips = [];
-                    if (cagr3 !== null && primaryYears !== 3) {
-                        chips.push(`<span class="growth-chip" data-value="${cagr3.toFixed(1)}">use 3yr: ${cagr3.toFixed(1)}%</span>`);
-                    }
-                    if (cagr4 !== null && primaryYears !== 4) {
-                        chips.push(`<span class="growth-chip" data-value="${cagr4.toFixed(1)}">use 4yr: ${cagr4.toFixed(1)}%</span>`);
-                    }
-                    growthSuggestEl.innerHTML = `Filled with ${primaryYears}yr revenue CAGR (${primary.toFixed(1)}%).` +
-                        (chips.length ? ` Or ${chips.join(' · ')}` : '');
+                if (revPrimary !== null) {
+                    setAutoFilled('growth', revPrimary.toFixed(1));
+                    growthSuggestEl.innerHTML = buildSuggestionHTML(revCagr3, revCagr4, revPrimary, revPrimaryYears, 'revenue');
                 } else {
                     growthNote = ' Not enough history for a revenue CAGR suggestion — growth left as-is.';
                 }
+
+                const shareCounts = incomeData.map(r => r.weightedAverageShsOut);
+                const dilCagr3 = seriesCAGR(shareCounts, 3);
+                const dilCagr4 = seriesCAGR(shareCounts, 4);
+                const dilPrimary = dilCagr4 !== null ? dilCagr4 : dilCagr3;
+                const dilPrimaryYears = dilCagr4 !== null ? 4 : 3;
+
+                if (dilPrimary !== null) {
+                    setAutoFilled('dilution', dilPrimary.toFixed(1));
+                    dilutionSuggestEl.innerHTML = buildSuggestionHTML(dilCagr3, dilCagr4, dilPrimary, dilPrimaryYears, 'share-count');
+                } else {
+                    dilutionNote = ' Not enough history for a dilution suggestion — left as-is.';
+                }
             } else {
                 growthNote = ' Not enough history for a revenue CAGR suggestion — growth left as-is.';
+                dilutionNote = ' Not enough history for a dilution suggestion — left as-is.';
             }
 
             calculate();
-            statusEl.textContent = `Loaded ${ticker} (fiscal year ${cashFlow.fiscalYear}).${growthNote} Dilution and terminal multiple are still yours to set.`;
+            statusEl.textContent = `Loaded ${ticker} (fiscal year ${cashFlow.fiscalYear}).${growthNote}${dilutionNote} Terminal multiple is still yours to set.`;
         } catch (err) {
             statusEl.textContent = `"${ticker}" isn't available on this API's free tier (some smaller/mid-cap tickers are restricted), or the request failed. Try a large-cap ticker (e.g. AAPL, MSFT) or fill in the fields manually.`;
         } finally {
@@ -890,6 +917,13 @@
     document.getElementById('growth-suggestions').addEventListener('click', (e) => {
         if (!e.target.classList.contains('growth-chip')) return;
         setAutoFilled('growth', e.target.dataset.value);
+        calculate();
+    });
+
+    // Same, for the dilution-rate suggestion chips.
+    document.getElementById('dilution-suggestions').addEventListener('click', (e) => {
+        if (!e.target.classList.contains('growth-chip')) return;
+        setAutoFilled('dilution', e.target.dataset.value);
         calculate();
     });
 
