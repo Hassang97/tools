@@ -73,7 +73,7 @@
 
         @media (max-width: 768px) {
             .content {
-                grid-template-columns: 1fr;
+                grid-template-columns: minmax(0, 1fr);
             }
         }
 
@@ -391,23 +391,6 @@
             margin-top: 0.25rem;
         }
 
-        input.auto-filled {
-            border-color: var(--accent);
-            background: #ecfdf5;
-        }
-
-        .growth-chip {
-            color: var(--primary);
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: underline;
-            text-underline-offset: 2px;
-        }
-
-        .growth-chip:hover {
-            color: var(--primary-hover);
-        }
-
         .glossary {
             padding: 1.75rem 2rem 2rem;
             border-top: 1px solid var(--border);
@@ -446,6 +429,25 @@
             color: var(--text-secondary);
             line-height: 1.55;
         }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header, .content, .glossary, .results-panel, .highlight-card {
+                padding: 1.25rem;
+            }
+
+            label, .result-item, .mos-target {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .iv-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
     </style>
 </head>
 <body>
@@ -454,22 +456,14 @@
     <div class="header">
         <h1>Intrinsic Value Calculator</h1>
         <p>Model a stock's fair value across different required-return hurdles (IV8 to IV15)</p>
-        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Enter a ticker and click Fetch to auto-fill Operating Cash Flow, SBC, Shares Outstanding, Price, Net Cash Per Share, and suggested growth/dilution rates (from historical revenue and share-count trends). Auto-filled fields are highlighted in green &mdash; overwrite any of them to use your own numbers instead. Terminal multiple always stays manual, since there's no market data for it.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Enter the company's cash flow, stock-based compensation, and share count, then set your growth and dilution assumptions. Results update as you type. Use 0 for any cost or rate you want to leave out.</p>
     </div>
 
     <div class="content">
         <div class="inputs-panel">
-            <div class="form-group">
-                <label><span class="label-text">Auto-Fill From Ticker<span class="info-icon" tabindex="0">i<span class="tooltip">Pulls Operating Cash Flow, SBC, Shares Outstanding, Price, and Net Cash Per Share from Financial Modeling Prep's free API (most recent annual filing + latest quote), plus suggested growth and dilution rates from historical revenue and share-count CAGR. Terminal multiple stays manual, since it's a pure judgment call with no market data behind it.</span></span></span></label>
-                <div style="display: flex; gap: 0.5rem;">
-                    <input type="text" id="ticker" placeholder="e.g. AAPL" style="text-transform: uppercase;">
-                    <button type="button" id="fetch-btn" style="white-space: nowrap; padding: 0 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--primary); color: #fff; font-size: 0.875rem; font-weight: 600; cursor: pointer;">Fetch</button>
-                    <button type="button" id="clear-btn" style="white-space: nowrap; padding: 0 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text-primary); font-size: 0.875rem; font-weight: 600; cursor: pointer;">Clear</button>
-                </div>
-                <div id="fetch-status" style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.4rem;"></div>
+            <div class="form-group" style="display: flex; justify-content: flex-end;">
+                <button type="button" id="clear-btn" style="white-space: nowrap; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text-primary); font-size: 0.875rem; font-weight: 600; cursor: pointer;">Clear</button>
             </div>
-
-            <div class="divider"></div>
 
             <div class="form-group">
                 <label><span class="label-text">Current Stock Price<span class="info-icon" tabindex="0">i<span class="tooltip">What the stock costs to buy right now.<br><br><b>Yahoo Finance:</b> the big number at the top of the stock's page.</span></span></span></label>
@@ -510,14 +504,6 @@
                 <input type="number" id="shares" placeholder="e.g. 413" step="any">
             </div>
 
-            <div class="form-group">
-                <label><span class="label-text">Net Cash Per Share ($)<span class="info-icon" tabindex="0">i<span class="tooltip">Cash + short-term investments minus total debt, per share. Added on top of the discounted owners'-earnings value, since it's realized value sitting on the balance sheet rather than a projection. Can be negative for indebted companies.<br><br><b>Yahoo Finance:</b> Balance Sheet &rarr; (Cash &amp; Short-Term Investments &minus; Total Debt) &divide; Shares Outstanding.</span></span></span></label>
-                <div class="input-wrapper has-icon">
-                    <span class="input-icon">$</span>
-                    <input type="number" id="net-cash" placeholder="e.g. 1.50" step="0.01">
-                </div>
-            </div>
-
             <div class="divider"></div>
 
             <div class="form-group">
@@ -526,7 +512,6 @@
                     <input type="number" id="growth" placeholder="e.g. 5" step="0.1">
                     <span class="percent-icon">%</span>
                 </div>
-                <div id="growth-suggestions" style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.4rem;"></div>
             </div>
 
             <div class="form-group">
@@ -535,7 +520,6 @@
                     <input type="number" id="dilution" placeholder="e.g. -2" step="0.1">
                     <span class="percent-icon">%</span>
                 </div>
-                <div id="dilution-suggestions" style="font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.4rem;"></div>
             </div>
 
             <div class="form-group">
@@ -565,8 +549,8 @@
             </div>
 
             <div class="highlight-card">
-                <span class="result-label label-text" id="main-iv-label">IV15 Value<span class="info-icon" tabindex="0">i<span class="tooltip">The blended fair value at your selected required-return rate: a weighted average of the infinite-growth leg and the 15-year-cutoff-with-terminal-multiple leg, plus Net Cash Per Share added on top.</span></span></span>
-                <span class="sub-label">Max price to guarantee a <span id="target-rate-sub">15</span>% annualized return</span>
+                <span class="result-label label-text"><span id="main-iv-label">IV15 Value</span><span class="info-icon" tabindex="0">i<span class="tooltip">The blended fair value at your selected required-return rate, a weighted average of the infinite-growth leg and the 15-year-cutoff-with-terminal-multiple leg.</span></span></span>
+                <span class="sub-label">Estimated price for a <span id="target-rate-sub">15</span>% annualized return</span>
                 <div class="result-value" id="res-iv">$0.00</div>
                 <div id="multiple-badge" class="badge">&nbsp;</div>
                 <span class="sub-label" id="blend-breakdown" style="margin-top: 0.5rem;">Perpetuity leg: $0.00 | Year-15 leg: $0.00</span>
@@ -632,10 +616,6 @@
                 <div class="glossary-def">The second estimate: a more conservative case that only projects 15 years out, then assumes the business is valued at a set earnings multiple at that point instead of growing forever.</div>
             </div>
             <div class="glossary-item">
-                <div class="glossary-term">Net Cash Per Share</div>
-                <div class="glossary-def">Cash and short-term investments minus total debt, divided by shares outstanding. Added on top of the discounted owners'-earnings value at full, undiscounted value, since it's cash already on the balance sheet rather than a future projection. Negative for companies carrying more debt than cash.</div>
-            </div>
-            <div class="glossary-item">
                 <div class="glossary-term">Terminal Multiple</div>
                 <div class="glossary-def">The earnings multiple assumed for the Year-15 leg's ending value: essentially "what P/E ratio might this business still command in 15 years," once its growth has matured.</div>
             </div>
@@ -691,30 +671,38 @@
     // Guards against nonsense output: growth too close to/above the
     // effective hurdle (Infinity), negative/zero owners' earnings, or
     // any other non-finite result. Returns display text instead of a number.
-    // `netCashPerShare` (cash + short-term investments − debt, per share) is
-    // added on top once the earnings-based PV clears those guards, matching
-    // Burry's stated method of adding net cash per share to owners'-earnings
-    // PV rather than folding it into the discounted cash flows themselves.
-    function formatIV(value, cfPerShare, netCashPerShare = 0) {
+    function formatIV(value, cfPerShare) {
         if (cfPerShare <= 0) return 'N/A (neg. earnings)';
         if (!isFinite(value)) return 'N/A (growth ≥ hurdle)';
         if (value <= 0) return 'N/A';
-        const total = value + netCashPerShare;
-        return `$${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        return `$${value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+
+    function clearResults(message) {
+        ['res-oe', 'res-eps', 'res-iv', 'res-mos', 'val-iv8', 'val-iv10', 'val-iv12', 'val-iv15'].forEach(id => {
+            document.getElementById(id).innerText = '\u2014';
+        });
+        document.getElementById('res-iv').className = 'result-value';
+        const badgeEl = document.getElementById('multiple-badge');
+        badgeEl.className = 'badge';
+        badgeEl.innerText = message;
+        document.getElementById('blend-breakdown').innerText = 'Perpetuity leg: \u2014 | Year-15 leg: \u2014';
+        [8, 10, 12, 15].forEach(rate => {
+            document.getElementById(`val-iv${rate}`).className = 'iv-val na';
+        });
     }
 
     function calculate() {
         // Inputs
-        const ocf = parseFloat(document.getElementById('ocf').value) || 0;
-        const sbc = parseFloat(document.getElementById('sbc').value) || 0;
-        const shares = parseFloat(document.getElementById('shares').value) || 1;
-        const growth = parseFloat(document.getElementById('growth').value) / 100 || 0;
-        const dilution = parseFloat(document.getElementById('dilution').value) / 100 || 0;
-        const currentPrice = parseFloat(document.getElementById('price').value) || 0;
+        const ocf = parseFloat(document.getElementById('ocf').value);
+        const sbc = parseFloat(document.getElementById('sbc').value);
+        const shares = parseFloat(document.getElementById('shares').value);
+        const growth = parseFloat(document.getElementById('growth').value) / 100;
+        const dilution = parseFloat(document.getElementById('dilution').value) / 100;
+        const currentPrice = parseFloat(document.getElementById('price').value);
         const selectedRate = parseFloat(document.getElementById('discount-rate').value);
-        const terminalMultiple = parseFloat(document.getElementById('termMult').value) || 0;
+        const terminalMultiple = parseFloat(document.getElementById('termMult').value);
         const perpetuityWeight = parseFloat(document.getElementById('blend-weight').value) / 100;
-        const netCashPerShare = parseFloat(document.getElementById('net-cash').value) || 0;
 
         // Update Slider Displays
         document.getElementById('rate-display').innerText = `IV${selectedRate} (${selectedRate}%)`;
@@ -722,6 +710,27 @@
         document.getElementById('target-rate-sub').innerText = selectedRate;
         document.getElementById('mos-rate-sub').innerText = selectedRate;
         document.getElementById('blend-display').innerText = `${(perpetuityWeight * 100).toFixed(0)}% / ${(100 - perpetuityWeight * 100).toFixed(0)}%`;
+
+        const referenceRates = [8, 10, 12, 15];
+        referenceRates.forEach(rate => {
+            document.getElementById(`box-${rate}`).className = rate === selectedRate ? 'iv-box active' : 'iv-box';
+        });
+
+        // A blank or zero share count must never silently become one share.
+        if (![ocf, sbc, shares, growth, dilution, terminalMultiple].every(Number.isFinite)) {
+            clearResults('Enter all inputs to calculate');
+            return;
+        }
+        const inputError = shares <= 0 ? 'Shares outstanding must be greater than 0'
+            : sbc < 0 ? 'SBC must be 0 or greater'
+            : growth < -1 ? 'Growth must be at least -100%'
+            : dilution <= -1 ? 'Dilution must be greater than -100%'
+            : terminalMultiple < 0 ? 'Terminal multiple must be 0 or greater'
+            : '';
+        if (inputError) {
+            clearResults(inputError);
+            return;
+        }
 
         // Step 1: Owners Earnings
         const ownersEarnings = ocf - sbc;
@@ -734,22 +743,19 @@
         const { hybridIV: mainIv, perpetuityIV, finiteIV } = calculateHybridIV(
             cfPerShare, growth, dilution, selectedRate / 100, terminalMultiple, perpetuityWeight
         );
-        document.getElementById('res-iv').innerText = formatIV(mainIv, cfPerShare, netCashPerShare);
+        document.getElementById('res-iv').innerText = formatIV(mainIv, cfPerShare);
         document.getElementById('blend-breakdown').innerText =
-            `Perpetuity leg: ${formatIV(perpetuityIV, cfPerShare, netCashPerShare)} | Year-15 leg: ${formatIV(finiteIV, cfPerShare, netCashPerShare)}`;
+            `Perpetuity leg: ${formatIV(perpetuityIV, cfPerShare)} | Year-15 leg: ${formatIV(finiteIV, cfPerShare)}`;
 
-        // 20% margin-of-safety buy target off the earnings-based PV, plus
-        // net cash per share added back at full value (not discounted,
-        // since it's already realized rather than a projection).
-        const mosBase = (isFinite(mainIv) && mainIv > 0) ? mainIv * 0.8 : mainIv;
-        document.getElementById('res-mos').innerText = formatIV(mosBase, cfPerShare, netCashPerShare);
+        // 20% margin-of-safety buy target, off the same main IV
+        const mosTarget = (isFinite(mainIv) && mainIv > 0) ? mainIv * 0.8 : mainIv;
+        document.getElementById('res-mos').innerText = formatIV(mosTarget, cfPerShare);
 
         // Calculate Multiple (only meaningful if mainIv is a real, positive number)
         const badgeEl = document.getElementById('multiple-badge');
         const resIvEl = document.getElementById('res-iv');
-        const totalIv = mainIv + netCashPerShare;
-        if (cfPerShare > 0 && isFinite(mainIv) && mainIv > 0 && totalIv > 0) {
-            const multiple = currentPrice / totalIv;
+        if (cfPerShare > 0 && isFinite(mainIv) && mainIv > 0 && Number.isFinite(currentPrice) && currentPrice > 0) {
+            const multiple = currentPrice / mainIv;
 
             if (multiple < 1.0) {
                 const pctBelow = (1 - multiple) * 100;
@@ -765,218 +771,35 @@
         } else {
             resIvEl.className = 'result-value';
             badgeEl.className = 'badge';
-            badgeEl.innerText = `Not enough data to compare`;
+            badgeEl.innerText = cfPerShare > 0 && isFinite(mainIv) && mainIv > 0
+                ? 'Enter a stock price to compare'
+                : 'Not enough data to compare';
         }
 
         // Calculate Reference IVs (capped at IV15; IV18/IV20 are unused)
-        const referenceRates = [8, 10, 12, 15];
         referenceRates.forEach(rate => {
             const { hybridIV: iv } = calculateHybridIV(cfPerShare, growth, dilution, rate / 100, terminalMultiple, perpetuityWeight);
             const valEl = document.getElementById(`val-iv${rate}`);
-            valEl.innerText = formatIV(iv, cfPerShare, netCashPerShare);
+            valEl.innerText = formatIV(iv, cfPerShare);
             valEl.className = (cfPerShare > 0 && isFinite(iv) && iv > 0) ? 'iv-val' : 'iv-val na';
-
-            // Highlight active box
-            const box = document.getElementById(`box-${rate}`);
-            if (rate === selectedRate) {
-                box.className = 'iv-box active';
-            } else {
-                box.className = 'iv-box';
-            }
         });
     }
 
-    // Attach listeners. A manual edit to a field that was auto-filled from
-    // the API clears its highlight, since it's now the user's own number.
+    // Attach listeners
     document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', () => {
-            input.classList.remove('auto-filled');
-            calculate();
+        input.addEventListener('input', calculate);
+    });
+
+    // Clear company inputs while keeping the selected model settings.
+    document.getElementById('clear-btn').addEventListener('click', () => {
+        ['ocf', 'sbc', 'shares', 'growth', 'dilution', 'price'].forEach(id => {
+            document.getElementById(id).value = '';
         });
+        calculate();
     });
 
     // Initial calculation
     calculate();
-
-    // Auto-fill OCF, SBC, shares, price, and a suggested growth rate from
-    // Financial Modeling Prep's free API. Dilution and terminal multiple
-    // stay manual, since those are judgment calls the tool never looked up.
-    const FMP_API_KEY = '08KjsknwFjOxw8Q6fiCOOZjkR8jrYeBw';
-    const FMP_BASE = 'https://financialmodelingprep.com/stable';
-
-    function setAutoFilled(id, value) {
-        const el = document.getElementById(id);
-        el.value = value;
-        el.classList.add('auto-filled');
-    }
-
-    // CAGR of an annual series over `years`, using the most recent value
-    // (index 0) and the value `years` annual reports back. Returns null if
-    // unavailable (not enough history yet, or a non-positive base value).
-    // Used both for revenue growth and, over share counts, for dilution.
-    function seriesCAGR(annualValues, years) {
-        if (annualValues.length <= years) return null;
-        const latest = annualValues[0];
-        const base = annualValues[years];
-        if (base <= 0 || latest <= 0) return null;
-        return (Math.pow(latest / base, 1 / years) - 1) * 100;
-    }
-
-    // Builds the "Filled with Xyr ... (Y%). Or use Nyr: Z%" suggestion line
-    // shared by the growth and dilution auto-fill UI.
-    function buildSuggestionHTML(cagr3, cagr4, primary, primaryYears, metricLabel) {
-        const chips = [];
-        if (cagr3 !== null && primaryYears !== 3) {
-            chips.push(`<span class="growth-chip" data-value="${cagr3.toFixed(1)}">use 3yr: ${cagr3.toFixed(1)}%</span>`);
-        }
-        if (cagr4 !== null && primaryYears !== 4) {
-            chips.push(`<span class="growth-chip" data-value="${cagr4.toFixed(1)}">use 4yr: ${cagr4.toFixed(1)}%</span>`);
-        }
-        return `Filled with ${primaryYears}yr ${metricLabel} CAGR (${primary.toFixed(1)}%).` +
-            (chips.length ? ` Or ${chips.join(' · ')}` : '');
-    }
-
-    async function fetchTickerData() {
-        const tickerInput = document.getElementById('ticker');
-        const statusEl = document.getElementById('fetch-status');
-        const growthSuggestEl = document.getElementById('growth-suggestions');
-        const dilutionSuggestEl = document.getElementById('dilution-suggestions');
-        const fetchBtn = document.getElementById('fetch-btn');
-        const ticker = tickerInput.value.trim().toUpperCase();
-
-        if (!ticker) {
-            statusEl.textContent = 'Enter a ticker first.';
-            return;
-        }
-
-        fetchBtn.disabled = true;
-        statusEl.textContent = 'Fetching…';
-        growthSuggestEl.textContent = '';
-        dilutionSuggestEl.textContent = '';
-
-        try {
-            // FMP's free tier caps annual history at 5 reports, which
-            // supports at most a 4-year CAGR (5 data points = 4 intervals).
-            const [quoteRes, cashFlowRes, sharesRes, incomeRes, balanceRes] = await Promise.all([
-                fetch(`${FMP_BASE}/quote?symbol=${ticker}&apikey=${FMP_API_KEY}`),
-                fetch(`${FMP_BASE}/cash-flow-statement?symbol=${ticker}&period=annual&limit=1&apikey=${FMP_API_KEY}`),
-                fetch(`${FMP_BASE}/shares-float?symbol=${ticker}&apikey=${FMP_API_KEY}`),
-                fetch(`${FMP_BASE}/income-statement?symbol=${ticker}&period=annual&limit=5&apikey=${FMP_API_KEY}`),
-                fetch(`${FMP_BASE}/balance-sheet-statement?symbol=${ticker}&period=annual&limit=1&apikey=${FMP_API_KEY}`)
-            ]);
-
-            const [quoteData, cashFlowData, sharesData, incomeData, balanceData] = await Promise.all([
-                quoteRes.json(), cashFlowRes.json(), sharesRes.json(), incomeRes.json(), balanceRes.json().catch(() => null)
-            ]);
-
-            const quote = Array.isArray(quoteData) ? quoteData[0] : null;
-            const cashFlow = Array.isArray(cashFlowData) ? cashFlowData[0] : null;
-            const shares = Array.isArray(sharesData) ? sharesData[0] : null;
-            const balance = Array.isArray(balanceData) ? balanceData[0] : null;
-
-            if (!quote || !cashFlow || !shares) {
-                statusEl.textContent = `No data found for "${ticker}". Check the ticker and try again.`;
-                return;
-            }
-
-            setAutoFilled('ocf', (cashFlow.netCashProvidedByOperatingActivities / 1e6).toFixed(1));
-            setAutoFilled('sbc', (cashFlow.stockBasedCompensation / 1e6).toFixed(1));
-            setAutoFilled('shares', (shares.outstandingShares / 1e6).toFixed(1));
-            setAutoFilled('price', quote.price.toFixed(2));
-
-            // Net cash per share (cash + short-term investments − total debt,
-            // ÷ shares outstanding) — added on top of the PV of owners'
-            // earnings in calculate(), matching Burry's stated IV15 method.
-            let netCashNote = '';
-            if (balance && typeof balance.cashAndShortTermInvestments === 'number' && typeof balance.totalDebt === 'number') {
-                const netCashPerShare = (balance.cashAndShortTermInvestments - balance.totalDebt) / shares.outstandingShares;
-                setAutoFilled('net-cash', netCashPerShare.toFixed(2));
-            } else {
-                netCashNote = ' Balance sheet data unavailable — net cash per share left as-is.';
-            }
-
-            // Growth suggestion from historical revenue CAGR, and dilution
-            // suggestion from historical share-count CAGR (same source
-            // data, just a different column — no extra API call).
-            let growthNote = '';
-            let dilutionNote = '';
-            if (Array.isArray(incomeData) && incomeData.length >= 2) {
-                const revenues = incomeData.map(r => r.revenue);
-                const revCagr3 = seriesCAGR(revenues, 3);
-                const revCagr4 = seriesCAGR(revenues, 4);
-                const revPrimary = revCagr4 !== null ? revCagr4 : revCagr3;
-                const revPrimaryYears = revCagr4 !== null ? 4 : 3;
-
-                if (revPrimary !== null) {
-                    setAutoFilled('growth', revPrimary.toFixed(1));
-                    growthSuggestEl.innerHTML = buildSuggestionHTML(revCagr3, revCagr4, revPrimary, revPrimaryYears, 'revenue');
-                } else {
-                    growthNote = ' Not enough history for a revenue CAGR suggestion — growth left as-is.';
-                }
-
-                const shareCounts = incomeData.map(r => r.weightedAverageShsOut);
-                const dilCagr3 = seriesCAGR(shareCounts, 3);
-                const dilCagr4 = seriesCAGR(shareCounts, 4);
-                const dilPrimary = dilCagr4 !== null ? dilCagr4 : dilCagr3;
-                const dilPrimaryYears = dilCagr4 !== null ? 4 : 3;
-
-                if (dilPrimary !== null) {
-                    setAutoFilled('dilution', dilPrimary.toFixed(1));
-                    dilutionSuggestEl.innerHTML = buildSuggestionHTML(dilCagr3, dilCagr4, dilPrimary, dilPrimaryYears, 'share-count');
-                } else {
-                    dilutionNote = ' Not enough history for a dilution suggestion — left as-is.';
-                }
-            } else {
-                growthNote = ' Not enough history for a revenue CAGR suggestion — growth left as-is.';
-                dilutionNote = ' Not enough history for a dilution suggestion — left as-is.';
-            }
-
-            calculate();
-            statusEl.textContent = `Loaded ${ticker} (fiscal year ${cashFlow.fiscalYear}).${growthNote}${dilutionNote}${netCashNote} Terminal multiple is still yours to set.`;
-        } catch (err) {
-            statusEl.textContent = `"${ticker}" isn't available on this API's free tier (some smaller/mid-cap tickers are restricted), or the request failed. Try a large-cap ticker (e.g. AAPL, MSFT) or fill in the fields manually.`;
-        } finally {
-            fetchBtn.disabled = false;
-        }
-    }
-
-    document.getElementById('fetch-btn').addEventListener('click', fetchTickerData);
-    document.getElementById('ticker').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            fetchTickerData();
-        }
-    });
-
-    // Clears the ticker and every field the Fetch button can auto-fill,
-    // back to their blank starting state. Manual-only inputs (terminal
-    // multiple, perpetuity weight, discount rate) are left untouched.
-    document.getElementById('clear-btn').addEventListener('click', () => {
-        document.getElementById('ticker').value = '';
-        ['ocf', 'sbc', 'shares', 'growth', 'dilution', 'price', 'net-cash'].forEach(id => {
-            const el = document.getElementById(id);
-            el.value = '';
-            el.classList.remove('auto-filled');
-        });
-        document.getElementById('fetch-status').textContent = '';
-        document.getElementById('growth-suggestions').textContent = '';
-        document.getElementById('dilution-suggestions').textContent = '';
-        calculate();
-    });
-
-    // Clicking a growth-rate suggestion chip applies that value instead.
-    document.getElementById('growth-suggestions').addEventListener('click', (e) => {
-        if (!e.target.classList.contains('growth-chip')) return;
-        setAutoFilled('growth', e.target.dataset.value);
-        calculate();
-    });
-
-    // Same, for the dilution-rate suggestion chips.
-    document.getElementById('dilution-suggestions').addEventListener('click', (e) => {
-        if (!e.target.classList.contains('growth-chip')) return;
-        setAutoFilled('dilution', e.target.dataset.value);
-        calculate();
-    });
 
     // Tooltip positioning: computed once up front (and on resize), not on
     // every hover, since layout dimensions are readable via getBoundingClientRect
