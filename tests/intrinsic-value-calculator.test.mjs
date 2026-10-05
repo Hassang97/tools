@@ -74,3 +74,89 @@ test('doubling shares halves per-share value in either model and the blend', () 
         closeTo(doubledShares.hybridIV, original.hybridIV / 2);
     }
 });
+
+function createLookup(fetch) {
+    const elements = new Map();
+    const context = vm.createContext({
+        fetch, AbortController, URLSearchParams, setTimeout, clearTimeout,
+        calculate() {},
+        document: {
+            getElementById(id) {
+                if (!elements.has(id)) elements.set(id, { value: '', textContent: '', disabled: false, classList: new Set() });
+                return elements.get(id);
+            },
+        },
+    });
+    const start = script.indexOf('    // Ticker lookup supplies');
+    const end = script.indexOf("    document.getElementById('fetch-btn').addEventListener");
+    vm.runInContext(script.slice(start, end), context);
+    context.document.getElementById('ticker').value = ' aapl ';
+    return { context, elements };
+}
+
+const reportedFigures = {
+    quote: [{ price: 75.84 }],
+    'cash-flow-statement': [{ netCashProvidedByOperatingActivities: 2887000000, stockBasedCompensation: 95000000, fiscalYear: '2025' }],
+    'shares-float': [{ outstandingShares: 413000000 }],
+};
+
+function respond(url, overrides = {}) {
+    const endpoint = new URL(url).pathname.split('/').pop();
+    return { ok: true, json: async () => ({ ...reportedFigures, ...overrides })[endpoint] };
+}
+
+test('ticker lookup fills only reported figures and preserves manual assumptions', async () => {
+    const requests = [];
+    const { context, elements } = createLookup(async url => {
+        requests.push(new URL(url));
+        return respond(url);
+    });
+    for (const id of ['growth', 'dilution', 'termMult', 'discount-rate', 'blend-weight']) {
+        context.document.getElementById(id).value = '7';
+    }
+    await context.fetchTickerData();
+    assert.equal(elements.get('ticker').value, 'AAPL');
+    for (const [id, expected] of Object.entries({ ocf: 2887, sbc: 95, shares: 413, price: 75.84 })) {
+        assert.equal(Number(elements.get(id).value), expected);
+        assert.ok(elements.get(id).classList.has('auto-filled'));
+    }
+    for (const id of ['growth', 'dilution', 'termMult', 'discount-rate', 'blend-weight']) {
+        assert.equal(elements.get(id).value, '7');
+    }
+    assert.equal(requests.length, 3);
+    assert.ok(requests.every(url => url.searchParams.get('symbol') === 'AAPL'));
+    assert.match(elements.get('fetch-status').textContent, /Loaded AAPL/);
+    assert.equal(elements.get('fetch-btn').disabled, false);
+});
+
+test('incomplete provider data never partially overwrites a previous company', async () => {
+    const { context, elements } = createLookup(async url => respond(url, { 'shares-float': [{ outstandingShares: null }] }));
+    for (const id of ['ocf', 'sbc', 'shares', 'price']) context.document.getElementById(id).value = '123';
+    await context.fetchTickerData();
+    for (const id of ['ocf', 'sbc', 'shares', 'price']) assert.equal(elements.get(id).value, '123');
+    assert.match(elements.get('fetch-status').textContent, /Incomplete data/);
+    assert.equal(elements.get('fetch-btn').disabled, false);
+});
+
+test('provider failures leave manual entry available and preserve existing inputs', async () => {
+    const { context, elements } = createLookup(async () => ({ ok: false }));
+    context.document.getElementById('ocf').value = '123';
+    await context.fetchTickerData();
+    assert.equal(elements.get('ocf').value, '123');
+    assert.match(elements.get('fetch-status').textContent, /Ticker lookup failed/);
+    assert.equal(elements.get('fetch-btn').disabled, false);
+});
+
+test('cancelling a lookup prevents a late response from refilling cleared fields', async () => {
+    const pending = [];
+    const { context, elements } = createLookup(url => new Promise(resolve => pending.push(() => resolve(respond(url)))));
+    const result = context.fetchTickerData();
+    context.cancelTickerRequest();
+    context.document.getElementById('ocf').value = '';
+    context.document.getElementById('fetch-status').textContent = '';
+    for (const resolve of pending) resolve();
+    await result;
+    assert.equal(elements.get('ocf').value, '');
+    assert.equal(elements.get('fetch-status').textContent, '');
+    assert.equal(elements.get('fetch-btn').disabled, false);
+});
