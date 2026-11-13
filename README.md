@@ -4,10 +4,10 @@ Small standalone tools, hosted as GitHub Pages. Landing page lists everything: h
 
 ## Intrinsic Value Calculator
 
-A DCF fair-value calculator (owners' earnings, blended perpetuity / Year-15
+A DCF fair-value calculator (owners' earnings from net income, blended perpetuity / Year-15
 terminal-multiple valuation, IV8–IV15 hurdle rates) with plain-English field
 explanations and Yahoo Finance lookup guidance for every input. Optional ticker
-lookup fills cash flow, reported SBC, shares, and price. Growth and dilution
+lookup fills net income, reported SBC, shares, and price. Growth and dilution
 assumptions stay manual, and every fetched value can be edited.
 
 Run the calculation regression checks with `node tests/intrinsic-value-calculator.test.mjs`.

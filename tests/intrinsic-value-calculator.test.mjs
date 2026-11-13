@@ -75,6 +75,13 @@ test('doubling shares halves per-share value in either model and the blend', () 
     }
 });
 
+test("owners' earnings start from net income and swap reported SBC for its cash cost", () => {
+    // With the reported expense as the stand-in cash cost, SBC is charged once.
+    assert.equal(model.calculateOwnersEarnings(7787, 799, 799), 7787);
+    assert.equal(model.calculateOwnersEarnings(7787, 799, 2000), 6586);
+    assert.equal(model.calculateOwnersEarnings(-500, 100, 100), -500);
+});
+
 function createLookup(fetch) {
     const elements = new Map();
     const context = vm.createContext({
@@ -96,7 +103,7 @@ function createLookup(fetch) {
 
 const reportedFigures = {
     quote: [{ price: 75.84 }],
-    'cash-flow-statement': [{ netCashProvidedByOperatingActivities: 2887000000, stockBasedCompensation: 95000000, fiscalYear: '2025' }],
+    'cash-flow-statement': [{ netIncome: 2673000000, stockBasedCompensation: 95000000, fiscalYear: '2025' }],
     'shares-float': [{ outstandingShares: 413000000 }],
 };
 
@@ -116,7 +123,7 @@ test('ticker lookup fills only reported figures and preserves manual assumptions
     }
     await context.fetchTickerData();
     assert.equal(elements.get('ticker').value, 'AAPL');
-    for (const [id, expected] of Object.entries({ ocf: 2887, sbc: 95, shares: 413, price: 75.84 })) {
+    for (const [id, expected] of Object.entries({ netIncome: 2673, gaapSbc: 95, sbc: 95, shares: 413, price: 75.84 })) {
         assert.equal(Number(elements.get(id).value), expected);
         assert.ok(elements.get(id).classList.has('auto-filled'));
     }
@@ -131,18 +138,18 @@ test('ticker lookup fills only reported figures and preserves manual assumptions
 
 test('incomplete provider data never partially overwrites a previous company', async () => {
     const { context, elements } = createLookup(async url => respond(url, { 'shares-float': [{ outstandingShares: null }] }));
-    for (const id of ['ocf', 'sbc', 'shares', 'price']) context.document.getElementById(id).value = '123';
+    for (const id of ['netIncome', 'gaapSbc', 'sbc', 'shares', 'price']) context.document.getElementById(id).value = '123';
     await context.fetchTickerData();
-    for (const id of ['ocf', 'sbc', 'shares', 'price']) assert.equal(elements.get(id).value, '123');
+    for (const id of ['netIncome', 'gaapSbc', 'sbc', 'shares', 'price']) assert.equal(elements.get(id).value, '123');
     assert.match(elements.get('fetch-status').textContent, /Incomplete data/);
     assert.equal(elements.get('fetch-btn').disabled, false);
 });
 
 test('provider failures leave manual entry available and preserve existing inputs', async () => {
     const { context, elements } = createLookup(async () => ({ ok: false }));
-    context.document.getElementById('ocf').value = '123';
+    context.document.getElementById('netIncome').value = '123';
     await context.fetchTickerData();
-    assert.equal(elements.get('ocf').value, '123');
+    assert.equal(elements.get('netIncome').value, '123');
     assert.match(elements.get('fetch-status').textContent, /Ticker lookup failed/);
     assert.equal(elements.get('fetch-btn').disabled, false);
 });
@@ -152,11 +159,11 @@ test('cancelling a lookup prevents a late response from refilling cleared fields
     const { context, elements } = createLookup(url => new Promise(resolve => pending.push(() => resolve(respond(url)))));
     const result = context.fetchTickerData();
     context.cancelTickerRequest();
-    context.document.getElementById('ocf').value = '';
+    context.document.getElementById('netIncome').value = '';
     context.document.getElementById('fetch-status').textContent = '';
     for (const resolve of pending) resolve();
     await result;
-    assert.equal(elements.get('ocf').value, '');
+    assert.equal(elements.get('netIncome').value, '');
     assert.equal(elements.get('fetch-status').textContent, '');
     assert.equal(elements.get('fetch-btn').disabled, false);
 });

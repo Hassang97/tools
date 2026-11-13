@@ -499,13 +499,13 @@
     <div class="header">
         <h1>Intrinsic Value Calculator</h1>
         <p>Model a stock's fair value across different required-return hurdles (IV8 to IV15)</p>
-        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Enter a ticker and click Fetch to fill cash flow, stock-based compensation, shares, and price, or enter the figures yourself. Set growth and dilution manually. Results update as you type; use 0 for any cost or rate you want to leave out.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Enter a ticker and click Fetch to fill net income, stock-based compensation, shares, and price, or enter the figures yourself. Set growth and dilution manually. Results update as you type; use 0 for any cost or rate you want to leave out.</p>
     </div>
 
     <div class="content">
         <div class="inputs-panel">
             <div class="form-group">
-                <label for="ticker"><span class="label-text">Auto-Fill From Ticker<span class="info-icon" tabindex="0">i<span class="tooltip">Loads cash flow and reported stock-based compensation from the latest annual filing, plus shares outstanding and the latest price. Reported SBC is a starting estimate for its cash cost; you can edit any filled value. Growth, dilution, and terminal multiple stay manual.</span></span></span></label>
+                <label for="ticker"><span class="label-text">Auto-Fill From Ticker<span class="info-icon" tabindex="0">i<span class="tooltip">Loads net income and reported stock-based compensation from the latest annual filing, plus shares outstanding and the latest price. Reported SBC is also used as a starting estimate for its cash cost; you can edit any filled value. Growth, dilution, and terminal multiple stay manual.</span></span></span></label>
                 <div class="ticker-controls">
                     <input type="text" id="ticker" placeholder="e.g. AAPL" autocomplete="off" autocapitalize="characters" spellcheck="false">
                     <button type="button" id="fetch-btn">Fetch</button>
@@ -533,15 +533,23 @@
             <div class="divider"></div>
 
             <div class="form-group">
-                <label><span class="label-text">Operating Cash Flow ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">Cash the core business actually generated last year, harder to fake than accounting profit.<br><br><b>Yahoo Finance:</b> Financials &rarr; Cash Flow &rarr; &ldquo;Operating Cash Flow&rdquo; (most recent annual/TTM, in millions).</span></span></span></label>
+                <label><span class="label-text">Net Income ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The company's reported (GAAP) profit for the year. This is the starting point for owners' earnings.<br><br><b>Yahoo Finance:</b> Financials &rarr; Income Statement &rarr; &ldquo;Net Income&rdquo; (most recent annual, in millions). Use the same period for both SBC fields below.</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
-                    <input type="number" id="ocf" placeholder="e.g. 2887" step="any">
+                    <input type="number" id="netIncome" placeholder="e.g. 2673" step="any">
                 </div>
             </div>
 
             <div class="form-group">
-                <label><span class="label-text">Total Cash Cost of SBC ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The real cash-equivalent cost of paying employees in stock, not the GAAP expense line, which looks "free" but quietly dilutes you.<br><br><b>Yahoo doesn't show this directly.</b> Stand-in: Financials &rarr; Cash Flow &rarr; &ldquo;Stock-Based Compensation&rdquo; (understates the true cost, but works for a first pass).</span></span></span></label>
+                <label><span class="label-text">Reported SBC Expense ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The stock-based compensation expense already subtracted inside net income. It is added back here so it can be replaced by the true cash cost below, instead of being counted twice.<br><br><b>Yahoo Finance:</b> Financials &rarr; Cash Flow &rarr; &ldquo;Stock-Based Compensation.&rdquo;</span></span></span></label>
+                <div class="input-wrapper has-icon">
+                    <span class="input-icon">$</span>
+                    <input type="number" id="gaapSbc" placeholder="e.g. 95" step="any">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><span class="label-text">Total Cash Cost of SBC ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The real cash-equivalent cost of paying employees in stock, not the GAAP expense line, which looks "free" but quietly dilutes you.<br><br><b>Yahoo doesn't show this directly.</b> Stand-in: the same number as Reported SBC Expense above (understates the true cost, but works for a first pass, and leaves owners' earnings equal to net income).</span></span></span></label>
                 <div class="input-wrapper has-icon">
                     <span class="input-icon">$</span>
                     <input type="number" id="sbc" placeholder="e.g. 95" step="any">
@@ -588,7 +596,7 @@
         <div class="results-panel">
             <div>
                 <div class="result-item">
-                    <span class="result-label label-text">True Owners' Earnings (CF0)<span class="info-icon" tabindex="0">i<span class="tooltip">Operating Cash Flow minus the true cash cost of stock-based compensation. A cash-based substitute for GAAP net income, and the base cash flow fed into both valuation legs below.</span></span></span>
+                    <span class="result-label label-text">True Owners' Earnings (CF0)<span class="info-icon" tabindex="0">i<span class="tooltip">Net income, plus the reported SBC expense added back, minus the true cash cost of stock-based compensation. This is the base earnings figure fed into both valuation legs below.</span></span></span>
                     <span class="result-value" id="res-oe">$0 M</span>
                 </div>
                 <div class="result-item" style="border-bottom: none;">
@@ -638,7 +646,7 @@
         <div class="glossary-grid">
             <div class="glossary-item">
                 <div class="glossary-term">Owners' Earnings</div>
-                <div class="glossary-def">The real cash profit left for shareholders once the true cost of stock-based compensation is backed out, a more honest number than accounting net income.</div>
+                <div class="glossary-def">Net income with the reported stock-based compensation expense swapped out for its true cash cost: the profit that actually belongs to shareholders.</div>
             </div>
             <div class="glossary-item">
                 <div class="glossary-term">Cash Cost of SBC</div>
@@ -727,6 +735,13 @@
         return `$${value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     }
 
+    // Owners' earnings: net income with the reported SBC expense replaced by
+    // its true cash cost. Adding the reported expense back first avoids
+    // charging SBC twice.
+    function calculateOwnersEarnings(netIncome, gaapSbc, sbcCashCost) {
+        return netIncome + gaapSbc - sbcCashCost;
+    }
+
     function clearResults(message) {
         ['res-oe', 'res-eps', 'res-iv', 'res-mos', 'val-iv8', 'val-iv10', 'val-iv12', 'val-iv15'].forEach(id => {
             document.getElementById(id).innerText = '\u2014';
@@ -743,7 +758,8 @@
 
     function calculate() {
         // Inputs
-        const ocf = parseFloat(document.getElementById('ocf').value);
+        const netIncome = parseFloat(document.getElementById('netIncome').value);
+        const gaapSbc = parseFloat(document.getElementById('gaapSbc').value);
         const sbc = parseFloat(document.getElementById('sbc').value);
         const shares = parseFloat(document.getElementById('shares').value);
         const growth = parseFloat(document.getElementById('growth').value) / 100;
@@ -766,12 +782,12 @@
         });
 
         // A blank or zero share count must never silently become one share.
-        if (![ocf, sbc, shares, growth, dilution, terminalMultiple].every(Number.isFinite)) {
+        if (![netIncome, gaapSbc, sbc, shares, growth, dilution, terminalMultiple].every(Number.isFinite)) {
             clearResults('Enter all inputs to calculate');
             return;
         }
         const inputError = shares <= 0 ? 'Shares outstanding must be greater than 0'
-            : sbc < 0 ? 'SBC must be 0 or greater'
+            : gaapSbc < 0 || sbc < 0 ? 'SBC must be 0 or greater'
             : growth < -1 ? 'Growth must be at least -100%'
             : dilution <= -1 ? 'Dilution must be greater than -100%'
             : terminalMultiple < 0 ? 'Terminal multiple must be 0 or greater'
@@ -782,7 +798,7 @@
         }
 
         // Step 1: Owners Earnings
-        const ownersEarnings = ocf - sbc;
+        const ownersEarnings = calculateOwnersEarnings(netIncome, gaapSbc, sbc);
         const cfPerShare = ownersEarnings / shares;
 
         document.getElementById('res-oe').innerText = `$${ownersEarnings.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})} M`;
@@ -884,7 +900,9 @@
             }
 
             const figures = {
-                ocf: cashFlow.netCashProvidedByOperatingActivities,
+                netIncome: cashFlow.netIncome,
+                gaapSbc: cashFlow.stockBasedCompensation,
+                // Reported SBC stands in for its cash cost until the user refines it.
                 sbc: cashFlow.stockBasedCompensation,
                 shares: shares.outstandingShares,
                 price: quote.price
@@ -945,7 +963,7 @@
     document.getElementById('clear-btn').addEventListener('click', () => {
         cancelTickerRequest();
         document.getElementById('fetch-status').textContent = '';
-        ['ticker', 'ocf', 'sbc', 'shares', 'growth', 'dilution', 'price'].forEach(id => {
+        ['ticker', 'netIncome', 'gaapSbc', 'sbc', 'shares', 'growth', 'dilution', 'price'].forEach(id => {
             const input = document.getElementById(id);
             input.value = '';
             input.classList.remove('auto-filled');
