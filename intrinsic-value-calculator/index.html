@@ -436,6 +436,38 @@
             margin-top: 0;
         }
 
+        .symbol-legend {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem 2.5rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .symbol-legend dl {
+            display: grid;
+            grid-template-columns: 4.5rem minmax(0, 1fr);
+            gap: 0.3rem 0.75rem;
+            margin-top: 0.35rem;
+            font-size: 0.8125rem;
+            line-height: 1.5;
+        }
+
+        .symbol-legend dt {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .symbol-legend dd {
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .symbol-legend {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
         .glossary-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -692,7 +724,52 @@
     </div>
 
     <details class="glossary">
-        <summary>Glossary of Burry's terms</summary>
+        <summary>Glossary and symbols</summary>
+        <h3 class="glossary-category">Legend of symbols</h3>
+        <div class="symbol-legend">
+            <div>
+                <div class="glossary-term">Company figures</div>
+                <dl>
+                    <dt>N</dt><dd>Net income for the year, as reported</dd>
+                    <dt>G</dt><dd>Reported stock-based compensation (SBC) expense</dd>
+                    <dt>S&#8320;, S&#8321;</dt><dd>Shares outstanding at the start and end of the period</dd>
+                    <dt>&Delta;S</dt><dd>Change in share count, S&#8321; &minus; S&#8320;. Negative means the count fell</dd>
+                </dl>
+            </div>
+            <div>
+                <div class="glossary-term">Cost of stock pay</div>
+                <dl>
+                    <dt>C</dt><dd>Tax paid on vesting shares, net of what employees pay in</dd>
+                    <dt>T</dt><dd>Dollars spent on open-market share buybacks</dd>
+                    <dt>W</dt><dd>Shares bought back under the buyback program</dd>
+                    <dt>P</dt><dd>Average buyback price, T &divide; W</dd>
+                    <dt>I</dt><dd>Shares issued to employees, &Delta;S + W</dd>
+                    <dt>V</dt><dd>Market value of shares delivered to employees, T &times; (W + &Delta;S) / W</dd>
+                    <dt>&Omega;</dt><dd>True cash cost of stock pay, C + V</dd>
+                </dl>
+            </div>
+            <div>
+                <div class="glossary-term">Owners' earnings</div>
+                <dl>
+                    <dt>OE</dt><dd>Owners' earnings, N + G &minus; &Omega;. Burry also writes E<sub>true</sub></dd>
+                    <dt>&Delta;E</dt><dd>Share of net income that belongs to owners, OE &divide; N</dd>
+                    <dt>CF0</dt><dd>Owners' earnings per share today, OE &divide; shares</dd>
+                    <dt>CF(k)</dt><dd>Owners' earnings per share in year k, CF0 &times; (1 + g)<sup>k</sup></dd>
+                </dl>
+            </div>
+            <div>
+                <div class="glossary-term">Valuation</div>
+                <dl>
+                    <dt>g</dt><dd>Yearly growth rate of owners' earnings</dd>
+                    <dt>y</dt><dd>Required yearly return. Burry's dilution formula calls this d</dd>
+                    <dt>d</dt><dd>Yearly dilution rate. Burry's dilution formula calls this y</dd>
+                    <dt>w</dt><dd>Perpetuity weight, the share of the result from the grow-forever leg</dd>
+                    <dt>IV<i>n</i></dt><dd>Price that delivers an <i>n</i>% yearly return, such as IV15</dd>
+                    <dt>P/IV15</dt><dd>Stock price divided by IV15</dd>
+                    <dt>IVB</dt><dd>Yearly return expected at the current price</dd>
+                </dl>
+            </div>
+        </div>
         <h3 class="glossary-category">Valuation</h3>
         <div class="glossary-grid">
             <div class="glossary-item">
