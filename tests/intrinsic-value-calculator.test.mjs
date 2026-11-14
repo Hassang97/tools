@@ -378,3 +378,41 @@ test('every hover gives a definition, and every calculated field a formula', () 
     }
     assert.equal(tooltips.filter(text => text.includes('class="formula"')).length, 12);
 });
+
+// Figures from the Alphabet table in "AP SBC: The Tragic Algebra Recurrence".
+test("the worked example reproduces Burry's Alphabet FY2025 owners' earnings", () => {
+    const [N, G, C, T, W, dS] = [132170, 24953, 14167, 45709, 221.9, -93];
+    // His table prints V = 26,551; the rounded W and dS it shows give 26,552.
+    assert.ok(Math.abs(T * (W + dS) / W - 26551) < 1.5);
+    const omega = C + 26551;
+    assert.equal(omega, 40718);
+    const { ownersEarnings, dilution } = model.resolveOwnerCashFlow('cash', N, G, omega, 0);
+    assert.equal(ownersEarnings, 116405);
+    assert.equal(dilution, 0);
+    assert.equal((ownersEarnings / N * 100).toFixed(1), '88.1');
+    const shown = runCalculator({ netIncome: String(N), gaapSbc: String(G), sbc: String(omega) });
+    assert.equal(shown('res-oe').innerText, '$116,405 M');
+});
+
+// "Foundations: The Tragic Algebra of Stock-Based Compensation": 5% growth,
+// 10% discount rate; 20x with no dilution, 16.4x at 1% dilution.
+test("the worked example reproduces Burry's Company A and Company B multiples", () => {
+    for (const [dilution, price, multiple] of [[0, '$21.00', '20.0'], [1, '$17.21', '16.4']]) {
+        const inputs = Object.fromEntries(Object.entries(model.companyExampleInputs(dilution)).map(([id, value]) => [id, String(value)]));
+        const shown = runCalculator(inputs);
+        assert.equal(shown('res-eps').innerText, '$1.00');
+        assert.equal(shown('res-iv').innerText, price);
+        assert.equal(shown('val-iv10').innerText, price);
+        // His multiple is on next year's cash flow, $1.05.
+        const exact = model.calculatePerpetuityIV(1, 0.05, dilution / 100, 0.10) / 1.05;
+        assert.equal(exact.toFixed(1), multiple);
+    }
+});
+
+test('the worked example text states the figures the tests above verify', () => {
+    const section = html.slice(html.indexOf('id="worked-example"'), html.indexOf('<script>'));
+    for (const figure of ['132,170', '24,953', '14,167', '45,709', '221.9', '&minus;93', '26,551', '40,718', '116,405', '88.1%',
+        '20.0x', '16.4x', '$21.00', '$17.21', '$1.05']) {
+        assert.ok(section.includes(figure), figure);
+    }
+});

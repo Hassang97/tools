@@ -448,6 +448,51 @@
             line-height: 1.55;
         }
 
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.5rem 2.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .example-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        .example-source {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.6rem;
+        }
+
+        .example-math {
+            display: block;
+            margin: 0.6rem 0;
+            padding: 0.6rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.75rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .example-load {
+            margin: 0.25rem 0.5rem 0 0;
+            padding: 0.4rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--primary);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
         .ticker-controls {
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto auto;
@@ -699,6 +744,35 @@
             </div>
         </div>
     </details>
+
+    <details class="glossary" id="worked-example" open>
+        <summary>Worked example, from Burry's articles</summary>
+        <div class="example-grid">
+            <div>
+                <div class="glossary-term">1. Owners' earnings: Alphabet, fiscal 2025</div>
+                <div class="example-source">Source: the Alphabet table in <em>AP SBC: The Tragic Algebra Recurrence</em>. Dollars and shares in millions.</div>
+                <div class="glossary-def">Burry's figures: net income N = 132,170; reported SBC G = 24,953; tax paid on vesting, net, C = 14,167; buyback dollars T = 45,709; shares repurchased W = 221.9; change in share count &Delta;S = &minus;93.</div>
+                <code class="example-math">V = T &times; (W + &Delta;S) / W
+  = 45,709 &times; (221.9 &minus; 93) / 221.9 = 26,551 *
+&Omega; = C + V = 14,167 + 26,551 = 40,718
+OE = N + G &minus; &Omega;
+   = 132,170 + 24,953 &minus; 40,718 = 116,405
+OE / N = 116,405 / 132,170 = 88.1%</code>
+                <div class="glossary-def">* As printed in his table, along with the same &Omega; and 88.1%; the rounded share counts shown give 26,552. In the calculator, with SBC Method set to cash cost: Net Income 132170, Reported SBC 24953 and Cash Cost of SBC 40718 give Owners' Earnings of $116,405 M. The articles give no growth rate or year-15 multiple for Alphabet, so the example stops there.</div>
+            </div>
+            <div>
+                <div class="glossary-term">2. Dilution: Company A and Company B</div>
+                <div class="example-source">Source: <em>Foundations: The Tragic Algebra of Stock-Based Compensation</em>.</div>
+                <div class="glossary-def">&ldquo;Take two identical companies, A and B, both growing at 5% and both discounted at a 10% rate.&rdquo; A pays only in cash; B &ldquo;dilutes owners at the rate of 1% annually.&rdquo; His result: A is worth 20x earnings, B &ldquo;only 16.4x&rdquo;. His formula, in this page's symbols, on next year's cash flow:</div>
+                <code class="example-math">Multiple = 1 / [(1 + y)(1 + d) &minus; (1 + g)]
+A: 1 / (1.10 &times; 1.00 &minus; 1.05) = 1 / 0.050 = 20.0x
+B: 1 / (1.10 &times; 1.01 &minus; 1.05) = 1 / 0.061 = 16.4x</code>
+                <div class="glossary-def">In the calculator: Growth 5, Required Return 10, Perpetuity Weight 100%, SBC Method set to dilution rate (0 for A, 1 for B), Net Income 100, Reported SBC 0, Shares 100. It shows $21.00 for A and $17.21 for B, because it takes this year's $1.00 a share and grows it to next year's $1.05 first: $21.00 &divide; $1.05 = 20.0x and $17.21 &divide; $1.05 = 16.4x.</div>
+                <button type="button" class="example-load" data-dilution="0">Load Company A</button>
+                <button type="button" class="example-load" data-dilution="1">Load Company B</button>
+            </div>
+        </div>
+    </details>
 </div>
 
 <script>
@@ -826,6 +900,15 @@
             ? `Trading ${((1 - multiple) * 100).toFixed(0)}% below IV${selectedRate}`
             : `Trading ${((multiple - 1) * 100).toFixed(0)}% above IV${selectedRate}`;
         return { badgeText, rangeText: notes.join('. ') };
+    }
+
+    // Burry's Company A / Company B example: every input is his.
+    function companyExampleInputs(dilutionPercent) {
+        return {
+            netIncome: 100, gaapSbc: 0, shares: 100, growth: 5,
+            'discount-rate': 10, 'blend-weight': 100,
+            sbcRoute: 'dilution', dilution: dilutionPercent
+        };
     }
 
     function clearResults(message) {
@@ -1171,6 +1254,17 @@
         updateSourceLinks();
         try { history.replaceState(null, '', location.pathname); } catch (error) { /* not available here */ }
         calculate();
+    });
+
+    document.querySelectorAll('.example-load').forEach(button => {
+        button.addEventListener('click', () => {
+            document.getElementById('clear-btn').click();
+            for (const [id, value] of Object.entries(companyExampleInputs(Number(button.dataset.dilution)))) {
+                document.getElementById(id).value = value;
+            }
+            calculate();
+            document.querySelector('.results-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
     });
 
     // Initial calculation

@@ -257,6 +257,10 @@ limitation is enough for now.
 - **A12: partly fixed.** The cash-cost hover gives `Ω = C + T(W + ΔS)/W` and the glossary notes
   that `C` is net of employee proceeds. No helper for computing it.
 - **A15: partly fixed.** The "start at 50/50" and "IV8 to IV15" texts are gone.
+- **A13: partly fixed.** A worked example at the bottom of the page uses only Burry's published
+  figures: Alphabet FY2025 owners' earnings (N 132,170, G 24,953, Ω 40,718, 88.1% of GAAP) and
+  Company A / Company B (20x and 16.4x on next year's cash flow). Both are pinned by tests. No
+  article gives the growth rate or multiple behind an IV15, so no IV15 is reproduced.
 - **Layout.** Every hover is a one-line definition plus the formula; each company figure links to
   its stockanalysis.com or Yahoo Finance page for the entered ticker; a lookup (button, Enter,
   leaving the field, or a `?t=TICKER` link) fills everything except growth, costing three calls.
