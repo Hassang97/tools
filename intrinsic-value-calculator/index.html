@@ -423,6 +423,19 @@
             margin-bottom: 1.25rem;
         }
 
+        .glossary-category {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 1.75rem 0 0.9rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .glossary-category:first-of-type {
+            margin-top: 0;
+        }
+
         .glossary-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -679,23 +692,199 @@
     </div>
 
     <details class="glossary">
-        <summary>Glossary</summary>
+        <summary>Glossary of Burry's terms</summary>
+        <h3 class="glossary-category">Valuation</h3>
         <div class="glossary-grid">
             <div class="glossary-item">
-                <div class="glossary-term">IV8 / IV10 / IV12 / IV15</div>
-                <div class="glossary-def">The price that delivers an 8%, 10%, 12% or 15% yearly return. IV15 is not intrinsic value. Intrinsic value sits around IV8 to IV10, generally 1.5 to 2.25 times IV15.</div>
+                <div class="glossary-term">IV15</div>
+                <div class="glossary-def">&ldquo;The stock price that provides a 15% annualized return 15 or more years into the future.&rdquo; It is the price he waits for, not what the business is worth: &ldquo;IV15 is not intrinsic value.&rdquo;</div>
             </div>
             <div class="glossary-item">
-                <div class="glossary-term">P/IV</div>
-                <div class="glossary-def">Price divided by the IV at a given return. Below 1.0x, the price should deliver more than that return; above 1.0x, less.</div>
+                <div class="glossary-term">IV8 / IV10 / IV12 / IV18</div>
+                <div class="glossary-def">The same price at an 8%, 10%, 12% or 18% required return. A stock trading at its IV18 should return roughly 18% a year over a 15-year holding period.</div>
             </div>
             <div class="glossary-item">
-                <div class="glossary-term">Cash Cost of SBC</div>
-                <div class="glossary-def">What stock pay costs owners in cash: withholding tax paid on vesting, net of what employees pay in, plus the buybacks that only offset dilution. Not the non-cash expense on the income statement.</div>
+                <div class="glossary-term">Intrinsic Value</div>
+                <div class="glossary-def">What the business is actually worth, using a 6% to 10% required return adjusted for risk. On his map it sits between IV8 and IV10, and generally between 1.5 and 2.25 times IV15, &ldquo;with 2 or under my rule.&rdquo;</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">P/IV15</div>
+                <div class="glossary-def">Price divided by IV15, used in place of P/E. Below 1.0x, the price should deliver more than 15% a year; above 1.0x, less.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">IVB</div>
+                <div class="glossary-def">The yearly return to expect from buying at the current stock price.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Negative IV15</div>
+                <div class="glossary-def">No stock price, not even $0.01, gives a 15% return. It does not mean the stock is worth less than zero; he leaves these alone as not investible.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Hybrid IV15</div>
+                <div class="glossary-def">IV15 blends two runs of one model: a full multi-stage model with a terminal value, and the same model stopped at year 15 with a multiple on that year's owners' earnings. The mix depends on his confidence in each.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Stage 0</div>
+                <div class="glossary-def">An extra opening stage added to the model for a young, fast-growing company just turning profitable, so its margins can build up over time.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Net Cash Per Share</div>
+                <div class="glossary-def">Cash beyond what the business needs, minus debt, per share. For payments companies, debt is also adjusted for float, and long-term purchase obligations count as debt.</div>
+            </div>
+        </div>
+        <h3 class="glossary-category">Owners' earnings and stock pay (Tragic Algebra)</h3>
+        <div class="glossary-grid">
+            <div class="glossary-item">
+                <div class="glossary-term">Owners' Earnings (OE)</div>
+                <div class="glossary-def">Profit that truly belongs to shareholders: net income with the reported stock pay expense replaced by its real cash cost. He also adjusts for normal tax rates, interest on excess cash, lease payments, and honest depreciation and amortization.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Tragic Algebra</div>
+                <div class="glossary-def">His method for finding the true cost of stock-based compensation (SBC), worked out with Phil Clifton. Stock pay costs owners either through cash spent to offset dilution or through a stake that is &ldquo;whittled down.&rdquo;</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">&Omega; (Omega), Cash Cost of SBC</div>
+                <div class="glossary-def">The true net cost of stock pay to shareholders, &Omega; = C + V. It replaces the reported expense G. Not the non-cash expense on the income statement.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">C, Net Tax Payments</div>
+                <div class="glossary-def">Cash the company pays to tax authorities when employee shares vest, less what employees pay in through option exercises and the employee stock purchase plan.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">V, Value of Shares Delivered</div>
+                <div class="glossary-def">The market value of the shares given to employees: V = T &times; (W + &Delta;S) / W, where T is buyback dollars, W is shares repurchased and &Delta;S is the change in share count.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">&Delta;E</div>
+                <div class="glossary-def">The fraction of reported net income that belongs to owners: (N + G &minus; &Omega;) / N. The Nasdaq 100 pooled figure he found was about 83%. He prefers about ten years pooled, because single years swing widely.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Dilution Formula</div>
+                <div class="glossary-def">Present value = next year's cash flow / [(1 + discount rate)(1 + dilution rate) &minus; (1 + growth)]. His example: at 5% growth and a 10% discount rate, 1% yearly dilution cuts the multiple from 20x to 16.4x.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Buyback to Nowhere</div>
+                <div class="glossary-def">Buybacks that only offset shares handed to employees, so cash is spent and the share count does not fall. Also the &ldquo;buyback treadmill&rdquo; or &ldquo;hamster wheel.&rdquo;</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Tragic Tier</div>
+                <div class="glossary-def">Companies whose cumulative stock pay cost exceeded reported SBC expense and net income put together, so owners' earnings are negative over the whole period.</div>
+            </div>
+        </div>
+        <h3 class="glossary-category">Moat: AI Competitive Threat (AICT) tiers</h3>
+        <div class="glossary-grid">
+            <div class="glossary-item">
+                <div class="glossary-term">Fortress</div>
+                <div class="glossary-def">Strongest of five tiers. An AI aggressor, or a business with little to no realistic AI threat, often built into customers' regulatory or mission-critical systems. Few competitive weaknesses.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Castle</div>
+                <div class="glossary-def">A strong moat and its own AI effort at true scale, with more uncertainty about how the business develops alongside AI-native rivals. Industry position is generally secure.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Chapel</div>
+                <div class="glossary-def">Faces an acute AI threat but owns relevant AI, has real research and significant switching costs. The outcome is far more uncertain than for a Castle.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Stone</div>
+                <div class="glossary-def">A real AI threat with little ability to adapt, or a low AI threat but strong competition and a shallow moat. Industry position may be seriously threatened.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Wood</div>
+                <div class="glossary-def">Weakest tier. Any AI in the product is borrowed, not owned, with essentially no research of its own. Threatened with extinction in the long term, or stuck with low growth.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Using the Tiers</div>
+                <div class="glossary-def">He qualifies them (&ldquo;strong Chapel&rdquo;, &ldquo;low Castle&rdquo;) and applies them outside software too. The tier shapes the growth and year-15 assumptions that go into IV15.</div>
+            </div>
+        </div>
+        <h3 class="glossary-category">Ranking and the All Map</h3>
+        <div class="glossary-grid">
+            <div class="glossary-item">
+                <div class="glossary-term">Composite Score</div>
+                <div class="glossary-def">A 100-point score for ranking stocks against each other, built from three buckets. He uses it for relative value only, not to set what a stock is worth.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Shareholder's Bucket</div>
+                <div class="glossary-def">How the company has treated owners: its Tragic Algebra standing, &Delta;E, the trend in stock pay, and how durable owners' earnings are.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Quality Bucket</div>
+                <div class="glossary-def">The AICT tier, cash flow and float, gross margin and pricing power, net revenue retention, and the level and steadiness of return on invested capital.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Valuation Bucket</div>
+                <div class="glossary-def">The multiple of price to IV15.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">The All Map</div>
+                <div class="glossary-def">His chart of covered stocks: P/IV15 on the vertical axis, AICT tier from Fortress to Wood across, and bubble size for the Composite Score.</div>
             </div>
             <div class="glossary-item">
                 <div class="glossary-term">Fat Pitch</div>
-                <div class="glossary-def">A rare opportunity worth swinging at. It weighs business quality as well as price, so a stock at IV15 is not automatically a fat pitch, and a great business can be one above IV15.</div>
+                <div class="glossary-def">The inner zone of the All Map: a rare opportunity worth swinging at. It weighs quality as well as price, so &ldquo;not all IV18s are fat pitches&rdquo; and a strong business can be one above IV15.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Just Outside / Out Field</div>
+                <div class="glossary-def">The middle zone of the All Map holds pitches Just Outside, worth watching. Beyond it is the Out Field, which he avoids.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Full Position</div>
+                <div class="glossary-def">His typical full position is about 6% of the portfolio. He holds less when disclosure is poor or when several holdings would move together.</div>
+            </div>
+        </div>
+        <h3 class="glossary-category">Other adjustments</h3>
+        <div class="glossary-grid">
+            <div class="glossary-item">
+                <div class="glossary-term">Return on Invested Capital (ROIC)</div>
+                <div class="glossary-def">Owners' earnings divided by the capital at risk in the business. His guide to growth: &ldquo;A company cannot outgrow its ROIC forever.&rdquo;</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Tax Normalization</div>
+                <div class="glossary-def">Valuing a company at its own long-run tax rate, not a temporarily low one or a data vendor's standard rate.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Virtual Write-Down</div>
+                <div class="glossary-def">An impairment of acquisition goodwill that he builds into his own valuation and charges against earnings over time, since reported goodwill is never amortized.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Purchase Obligations</div>
+                <div class="glossary-def">Long, non-cancellable supply contracts that sit off the balance sheet. He treats them as debt and adds them to the capital base.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Float</div>
+                <div class="glossary-def">Customer money a company holds before paying it out, as at payments and payroll companies.</div>
+            </div>
+        </div>
+        <h3 class="glossary-category">AI and market terms</h3>
+        <div class="glossary-grid">
+            <div class="glossary-item">
+                <div class="glossary-term">Supply-Side Gluttony</div>
+                <div class="glossary-def">His name for a mania-driven investment boom in which capacity is built far ahead of demand. He calls it the cardinal sign of a bubble.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Tokenmaxxing</div>
+                <div class="glossary-def">Employees told to use as many AI tokens as possible, which trains the company's models on their unpaid prompts. He treats the resulting demand as temporary.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">The Bezzle</div>
+                <div class="glossary-def">Galbraith's term for hidden losses that make everyone feel wealthier until they surface. Burry's version: temporary AI demand &ldquo;financed and tallied as if it were permanent demand.&rdquo;</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Compression</div>
+                <div class="glossary-def">Companies moving from buying AI from others toward running their own models, which shrinks outside demand. Seat compression is AI cutting the number of paid software seats.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">One Lake One Life (OLOL)</div>
+                <div class="glossary-def">Security firms that keep all customers' data in one protected pool: &ldquo;if that one lake is breached, all the data is revealed.&rdquo;</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">SDDD</div>
+                <div class="glossary-def">Segregated and deception-defended data, the alternative he expects to replace One Lake One Life.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Mechanical Bid</div>
+                <div class="glossary-def">Passive funds, retirement plans and buybacks that buy regardless of price, &ldquo;that mechanical bid that always picks the market up.&rdquo;</div>
             </div>
         </div>
     </details>
