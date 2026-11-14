@@ -111,6 +111,12 @@
             margin-top: 0.5rem;
         }
 
+        input:disabled {
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
         input:focus, select:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
@@ -205,31 +211,9 @@
             color: var(--text-primary);
         }
 
-        .mos-target {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 0.85rem;
-            padding-top: 0.85rem;
-            border-top: 1px dashed var(--border);
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
 
-        .mos-value {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
 
-        .fat-pitch {
-            color: var(--accent) !important;
-        }
 
-        .expensive {
-            color: var(--danger) !important;
-        }
 
         .badge {
             display: inline-block;
@@ -241,15 +225,7 @@
             color: #475569;
         }
 
-        .badge.success {
-            background: #d1fae5;
-            color: #065f46;
-        }
 
-        .badge.danger {
-            background: #fee2e2;
-            color: #991b1b;
-        }
 
         .divider {
             height: 1px;
@@ -396,7 +372,49 @@
             border-top: 1px solid var(--border);
         }
 
-        .glossary h2 {
+        .tooltip .formula {
+            display: block;
+            margin-top: 0.5rem;
+            padding: 0.35rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.75rem;
+            line-height: 1.45;
+        }
+
+        .source-link {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--primary);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .source-link:hover {
+            text-decoration: underline;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin: 1.5rem 0 1rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border);
+        }
+
+        summary.section-title, .glossary summary {
+            cursor: pointer;
+        }
+
+        .glossary[open] summary {
+            margin-bottom: 1.25rem;
+        }
+
+        .glossary summary {
             font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -468,6 +486,20 @@
             margin-top: 0.4rem;
         }
 
+        .api-key-box {
+            margin-top: 0.5rem;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .api-key-box summary {
+            cursor: pointer;
+        }
+
+        .api-key-box p {
+            margin: 0.4rem 0;
+        }
+
         input.auto-filled {
             border-color: var(--accent);
             background: #ecfdf5;
@@ -482,7 +514,7 @@
                 padding: 1.25rem;
             }
 
-            label, .result-item, .mos-target {
+            label, .result-item {
                 flex-wrap: wrap;
                 gap: 0.5rem;
             }
@@ -498,142 +530,147 @@
 <div class="container">
     <div class="header">
         <h1>Intrinsic Value Calculator</h1>
-        <p>Model a stock's fair value across different required-return hurdles (IV8 to IV15)</p>
-        <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">Enter a ticker and click Fetch to fill net income, stock-based compensation, shares, and price, or enter the figures yourself. Set growth and dilution manually. Results update as you type; use 0 for any cost or rate you want to leave out.</p>
+        <p>The price that delivers each required return. IV15 is not intrinsic value; that sits around IV8 to IV10.</p>
     </div>
 
     <div class="content">
         <div class="inputs-panel">
             <div class="form-group">
-                <label for="ticker"><span class="label-text">Auto-Fill From Ticker<span class="info-icon" tabindex="0">i<span class="tooltip">Loads net income and reported stock-based compensation from the latest annual filing, plus shares outstanding and the latest price. Reported SBC is also used as a starting estimate for its cash cost; you can edit any filled value. Growth, dilution, and terminal multiple stay manual.</span></span></span></label>
+                <label for="ticker"><span class="label-text">Ticker<span class="info-icon" tabindex="0">i<span class="tooltip">Fills price, net income, reported SBC, shares and net cash from the latest annual filing. Every filled value stays editable.</span></span></span></label>
                 <div class="ticker-controls">
                     <input type="text" id="ticker" placeholder="e.g. AAPL" autocomplete="off" autocapitalize="characters" spellcheck="false">
                     <button type="button" id="fetch-btn">Fetch</button>
                     <button type="button" id="clear-btn">Clear</button>
                 </div>
                 <div id="fetch-status" role="status" aria-live="polite"></div>
+                <details class="api-key-box">
+                    <summary>Use your own data key</summary>
+                    <p>Lookups share one free Financial Modeling Prep key, which runs out each day. Your own key is saved only in this browser.</p>
+                    <input type="text" id="api-key" placeholder="Financial Modeling Prep API key" autocomplete="off" spellcheck="false" aria-label="Your Financial Modeling Prep API key">
+                </details>
             </div>
 
+            <div class="section-title">Your assumptions</div>
             <div class="form-group">
-                <label><span class="label-text">Current Stock Price<span class="info-icon" tabindex="0">i<span class="tooltip">What the stock costs to buy right now.<br><br><b>Yahoo Finance:</b> the big number at the top of the stock's page.</span></span></span></label>
-                <div class="input-wrapper has-icon">
-                    <span class="input-icon">$</span>
-                    <input type="number" id="price" placeholder="e.g. 75.84" step="0.01">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>
-                    <span class="label-text">Target Return / Discount Rate<span class="info-icon" tabindex="0">i<span class="tooltip">The annual return you personally want from this investment. A well-known value investor's own bar is 15% a year, what he calls "IV15." The lower settings (8-12%) show cheaper, less demanding fair-value estimates for comparison.<br><br>Not a lookup. This is the return <b>you</b> want. Slide it to set your own bar.</span></span></span>
-                    <span class="slider-value" id="rate-display">IV15 (15%)</span>
-                </label>
-                <input type="range" id="discount-rate" min="5" max="15" value="15" step="1">
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="form-group">
-                <label><span class="label-text">Net Income ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The company's reported (GAAP) profit for the year. This is the starting point for owners' earnings.<br><br><b>Yahoo Finance:</b> Financials &rarr; Income Statement &rarr; &ldquo;Net Income&rdquo; (most recent annual, in millions). Use the same period for both SBC fields below.</span></span></span></label>
-                <div class="input-wrapper has-icon">
-                    <span class="input-icon">$</span>
-                    <input type="number" id="netIncome" placeholder="e.g. 2673" step="any">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label><span class="label-text">Reported SBC Expense ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The stock-based compensation expense already subtracted inside net income. It is added back here so it can be replaced by the true cash cost below, instead of being counted twice.<br><br><b>Yahoo Finance:</b> Financials &rarr; Cash Flow &rarr; &ldquo;Stock-Based Compensation.&rdquo;</span></span></span></label>
-                <div class="input-wrapper has-icon">
-                    <span class="input-icon">$</span>
-                    <input type="number" id="gaapSbc" placeholder="e.g. 95" step="any">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label><span class="label-text">Total Cash Cost of SBC ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">The real cash-equivalent cost of paying employees in stock, not the GAAP expense line, which looks "free" but quietly dilutes you.<br><br><b>Yahoo doesn't show this directly.</b> Stand-in: the same number as Reported SBC Expense above (understates the true cost, but works for a first pass, and leaves owners' earnings equal to net income).</span></span></span></label>
-                <div class="input-wrapper has-icon">
-                    <span class="input-icon">$</span>
-                    <input type="number" id="sbc" placeholder="e.g. 95" step="any">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label><span class="label-text">Shares Outstanding (Millions)<span class="info-icon" tabindex="0">i<span class="tooltip">How many total slices the company is cut into. Every dollar of profit gets divided across this many shares, so more shares means each one is worth less, all else equal.<br><br><b>Yahoo Finance:</b> <i>Statistics</i> tab &rarr; &ldquo;Shares Outstanding.&rdquo;</span></span></span></label>
-                <input type="number" id="shares" placeholder="e.g. 413" step="any">
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="form-group">
-                <label><span class="label-text">Expected Perpetual Growth Rate<span class="info-icon" tabindex="0">i<span class="tooltip">Your own assumption for how fast cash profits keep growing, far into the future. A judgment call, not a published fact.<br><br>Rough starting point: <i>Financials</i> &rarr; Revenue over the last 3&ndash;5 years, or the <i>Analysis</i> tab's long-term growth estimate.</span></span></span></label>
+                <label><span class="label-text">Growth Rate<span class="info-icon" tabindex="0">i<span class="tooltip">Yearly growth in owners' earnings (g), applied every year. Burry: &ldquo;A company cannot outgrow its ROIC forever.&rdquo;<code class="formula">CF(k) = CF0 &times; (1 + g)^k</code></span></span></span><a class="source-link" data-field="growth" href="https://stockanalysis.com/" target="_blank" rel="noopener">stockanalysis &#8599;</a></label>
                 <div class="input-wrapper has-percent">
                     <input type="number" id="growth" placeholder="e.g. 5" step="0.1">
                     <span class="percent-icon">%</span>
                 </div>
             </div>
-
             <div class="form-group">
-                <label><span class="label-text">Annual Share Dilution Rate<span class="info-icon" tabindex="0">i<span class="tooltip">Net change in share count each year: issuing stock dilutes you, buybacks shrink the count and help you. Negative means shares outstanding are shrinking.<br><br><b>Yahoo Finance:</b> compare this year's "Shares Outstanding" (Statistics tab) to last year's.</span></span></span></label>
+                <label><span class="label-text">Required Return<span class="info-icon" tabindex="0">i<span class="tooltip">The yearly return you require (y). IV15 is the most you can pay and still earn 15%. Intrinsic value sits around IV8 to IV10.</span></span></span><span class="slider-value" id="rate-display">IV15 (15%)</span></label>
+                <input type="range" id="discount-rate" min="5" max="15" value="15" step="1">
+            </div>
+            <div class="form-group">
+                <label><span class="label-text">Year-15 Terminal Multiple<span class="info-icon" tabindex="0">i<span class="tooltip">What the business sells for in year 15, as a multiple of that year's owners' earnings.<code class="formula">Terminal value = CF(15) &times; multiple</code></span></span></span></label>
+                <input type="number" id="termMult" value="15" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+                <label><span class="label-text">Perpetuity Weight<span class="info-icon" tabindex="0">i<span class="tooltip">Share of the result taken from the grow-forever leg (w). The rest comes from the year-15 leg.<code class="formula">IV = w &times; Perpetuity + (1 &minus; w) &times; Year-15 + net cash per share</code><code class="formula">Perpetuity = CF0(1 + g) / [(1 + y)(1 + d) &minus; (1 + g)]</code></span></span></span><span class="slider-value" id="blend-display">0% / 100%</span></label>
+                <input type="range" id="blend-weight" min="0" max="100" value="0" step="5">
+            </div>
+            <div class="form-group">
+                <label><span class="label-text">SBC Method<span class="info-icon" tabindex="0">i<span class="tooltip">Stock pay is charged once, by one method, never both.<code class="formula">Cash cost: OE = N + G &minus; &Omega;, d = 0</code><code class="formula">Dilution: OE = N + G, shares grow at d</code></span></span></span></label>
+                <select id="sbcRoute" aria-label="SBC method">
+                    <option value="cash" selected>Cash cost of SBC</option>
+                    <option value="dilution">Annual dilution rate</option>
+                </select>
+            </div>
+            <div class="form-group" id="sbc-group">
+                <label><span class="label-text">Cash Cost of SBC ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">Cash actually spent on stock pay (&Omega;): withholding tax paid on vesting, net of employee proceeds (C), plus the buyback dollars (T) that only offset dilution. Blank uses reported SBC.<code class="formula">&Omega; = C + T &times; (W + &Delta;S) / W</code><code class="formula">W = shares repurchased; &Delta;S = change in share count</code></span></span></span><a class="source-link" data-field="sbc" href="https://stockanalysis.com/" target="_blank" rel="noopener">stockanalysis &#8599;</a></label>
+                <div class="input-wrapper has-icon">
+                    <span class="input-icon">$</span>
+                    <input type="number" id="sbc" placeholder="Same as reported SBC" step="any">
+                </div>
+            </div>
+            <div class="form-group" id="dilution-group">
+                <label><span class="label-text">Dilution Rate<span class="info-icon" tabindex="0">i<span class="tooltip">Yearly growth in the share count (d). Cannot be negative: owners' earnings already account for buybacks.<code class="formula">Per-share discount = (1 + y)(1 + d)</code></span></span></span><a class="source-link" data-field="dilution" href="https://stockanalysis.com/" target="_blank" rel="noopener">stockanalysis &#8599;</a></label>
                 <div class="input-wrapper has-percent">
-                    <input type="number" id="dilution" placeholder="e.g. -2" step="0.1">
+                    <input type="number" id="dilution" placeholder="e.g. 2" step="0.1" min="0">
                     <span class="percent-icon">%</span>
                 </div>
             </div>
 
+            <details class="company-figures" id="company-figures" open>
+                <summary class="section-title" id="company-summary">Company figures</summary>
             <div class="form-group">
-                <label><span class="label-text">Year-15 Terminal Multiple<span class="info-icon" tabindex="0">i<span class="tooltip">A guess at what multiple of its Year-15 profits the market might still pay for this business 15 years from now, once growth has slowed to a crawl.<br><br>Not on Yahoo Finance directly. A reasonable anchor: the current P/E ratio of mature, slow-growing companies in the same industry (<i>Statistics</i> tab &rarr; &ldquo;PE Ratio&rdquo;), or a conservative market-average figure like 12&ndash;15x.</span></span></span></label>
-                <input type="number" id="termMult" value="15" step="0.1" min="0">
+                <label><span class="label-text">Stock Price<span class="info-icon" tabindex="0">i<span class="tooltip">Latest share price.</span></span></span><a class="source-link" data-field="price" href="https://finance.yahoo.com/" target="_blank" rel="noopener">Yahoo &#8599;</a></label>
+                <div class="input-wrapper has-icon">
+                    <span class="input-icon">$</span>
+                    <input type="number" id="price" placeholder="e.g. 75.84" step="0.01">
+                </div>
             </div>
-
             <div class="form-group">
-                <label>
-                    <span class="label-text">Perpetuity Weight in Hybrid IV<span class="info-icon" tabindex="0">i<span class="tooltip">How much you trust an infinite "forever growth" estimate versus a more conservative 15-year cutoff. 100% leans entirely on the optimistic infinite-growth math; 0% relies entirely on the more cautious 15-year model.<br><br>Pure judgment call, since there's no market data for this. Start at 50/50 and shift it based on how confident you are in the company's long-term durability.</span></span></span>
-                    <span class="slider-value" id="blend-display">0% / 100%</span>
-                </label>
-                <input type="range" id="blend-weight" min="0" max="100" value="0" step="5">
+                <label><span class="label-text">Net Income ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">GAAP profit for the latest fiscal year (N).</span></span></span><a class="source-link" data-field="netIncome" href="https://stockanalysis.com/" target="_blank" rel="noopener">stockanalysis &#8599;</a></label>
+                <div class="input-wrapper has-icon">
+                    <span class="input-icon">$</span>
+                    <input type="number" id="netIncome" placeholder="e.g. 2673" step="any">
+                </div>
             </div>
+            <div class="form-group">
+                <label><span class="label-text">Reported SBC ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">Stock-based compensation expense already deducted from net income (G). Added back so stock pay is charged once.</span></span></span><a class="source-link" data-field="gaapSbc" href="https://stockanalysis.com/" target="_blank" rel="noopener">stockanalysis &#8599;</a></label>
+                <div class="input-wrapper has-icon">
+                    <span class="input-icon">$</span>
+                    <input type="number" id="gaapSbc" placeholder="e.g. 95" step="any">
+                </div>
+            </div>
+            <div class="form-group">
+                <label><span class="label-text">Shares Outstanding (M)<span class="info-icon" tabindex="0">i<span class="tooltip">Shares outstanding today.<code class="formula">Per share = total &divide; shares</code></span></span></span><a class="source-link" data-field="shares" href="https://stockanalysis.com/" target="_blank" rel="noopener">stockanalysis &#8599;</a></label>
+                <input type="number" id="shares" placeholder="e.g. 413" step="any">
+            </div>
+            <div class="form-group">
+                <label><span class="label-text">Net Cash ($M)<span class="info-icon" tabindex="0">i<span class="tooltip">Cash and investments minus total debt. Negative means net debt; blank counts as 0.<code class="formula">Net cash per share = net cash &divide; shares</code></span></span></span><a class="source-link" data-field="netCash" href="https://stockanalysis.com/" target="_blank" rel="noopener">stockanalysis &#8599;</a></label>
+                <div class="input-wrapper has-icon">
+                    <span class="input-icon">$</span>
+                    <input type="number" id="netCash" placeholder="e.g. 1500 or -800" step="any">
+                </div>
+            </div>
+            </details>
         </div>
 
         <div class="results-panel">
             <div>
                 <div class="result-item">
-                    <span class="result-label label-text">True Owners' Earnings (CF0)<span class="info-icon" tabindex="0">i<span class="tooltip">Net income, plus the reported SBC expense added back, minus the true cash cost of stock-based compensation. This is the base earnings figure fed into both valuation legs below.</span></span></span>
+                    <span class="result-label label-text">Owners' Earnings<span class="info-icon" tabindex="0">i<span class="tooltip">Profit that belongs to owners after the real cost of stock pay.<code class="formula">Cash cost: OE = N + G &minus; &Omega;</code><code class="formula">Dilution: OE = N + G</code></span></span></span>
                     <span class="result-value" id="res-oe">$0 M</span>
                 </div>
-                <div class="result-item" style="border-bottom: none;">
-                    <span class="result-label label-text">Owners' Earnings Per Share<span class="info-icon" tabindex="0">i<span class="tooltip">True Owners' Earnings divided by Shares Outstanding.</span></span></span>
+                <div class="result-item">
+                    <span class="result-label label-text">Owners' Earnings Per Share<span class="info-icon" tabindex="0">i<span class="tooltip">The starting cash flow for both valuation legs.<code class="formula">CF0 = OE &divide; shares</code></span></span></span>
                     <span class="result-value" id="res-eps">$0.00</span>
+                </div>
+                <div class="result-item" style="border-bottom: none;">
+                    <span class="result-label label-text">Net Cash Per Share<span class="info-icon" tabindex="0">i<span class="tooltip">Included in every IV below. Negative means net debt.<code class="formula">Net cash &divide; shares</code></span></span></span>
+                    <span class="result-value" id="res-netcash">$0.00</span>
                 </div>
             </div>
 
             <div class="highlight-card">
-                <span class="result-label label-text"><span id="main-iv-label">IV15 Value</span><span class="info-icon" tabindex="0">i<span class="tooltip">The blended fair value at your selected required-return rate, a weighted average of the infinite-growth leg and the 15-year-cutoff-with-terminal-multiple leg.</span></span></span>
-                <span class="sub-label">Estimated price for a <span id="target-rate-sub">15</span>% annualized return</span>
+                <span class="result-label label-text"><span id="main-iv-label">IV15 Value</span><span class="info-icon" tabindex="0">i<span class="tooltip">The most you can pay and still earn the required return.<code class="formula">IV = w &times; Perpetuity + (1 &minus; w) &times; Year-15 + net cash per share</code><code class="formula">Year-15 = &Sigma; CF(k) / [(1 + y)(1 + d)]^k for k = 1..15, plus CF(15) &times; multiple / [(1 + y)(1 + d)]^15</code></span></span></span>
+                <span class="sub-label">Price for a <span id="target-rate-sub">15</span>% annual return</span>
                 <div class="result-value" id="res-iv">$0.00</div>
                 <div id="multiple-badge" class="badge">&nbsp;</div>
+                <span class="sub-label" id="iv-range-note"></span>
                 <span class="sub-label" id="blend-breakdown" style="margin-top: 0.5rem;">Perpetuity leg: $0.00 | Year-15 leg: $0.00</span>
-                <div class="mos-target">
-                    <span class="label-text">Conservative Buy Target<span class="info-icon" tabindex="0">i<span class="tooltip">A more cautious price than fair value itself: 20% cheaper (0.8&times; the IV<span id="mos-rate-sub">15</span> value above). Rather than paying exactly what a business is worth, this leaves room for your assumptions being a bit too optimistic before you act.</span></span></span>
-                    <span class="mos-value" id="res-mos">$0.00</span>
-                </div>
             </div>
 
             <div>
-                <span class="result-label label-text" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Reference Values (Different Required-Return Rates)<span class="info-icon" tabindex="0">i<span class="tooltip" style="text-transform: none; letter-spacing: normal;">Same formula run at lower required-return rates, for comparison.</span></span></span>
+                <span class="result-label label-text" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">IV at Other Returns<span class="info-icon" tabindex="0">i<span class="tooltip" style="text-transform: none; letter-spacing: normal;">The same calculation at 8%, 10%, 12% and 15%. Intrinsic value sits around IV8 to IV10, generally 1.5 to 2.25 times IV15.</span></span></span>
                 <div class="iv-grid">
                     <div class="iv-box" id="box-8">
-                        <div class="iv-label">IV8 (Fair Value)</div>
+                        <div class="iv-label">IV8 (Intrinsic value range)</div>
                         <div class="iv-val" id="val-iv8">$0.00</div>
                     </div>
                     <div class="iv-box" id="box-10">
-                        <div class="iv-label">IV10 (Standard)</div>
+                        <div class="iv-label">IV10 (Intrinsic value range)</div>
                         <div class="iv-val" id="val-iv10">$0.00</div>
                     </div>
                     <div class="iv-box" id="box-12">
-                        <div class="iv-label">IV12 (Premium)</div>
+                        <div class="iv-label">IV12 (12% return)</div>
                         <div class="iv-val" id="val-iv12">$0.00</div>
                     </div>
                     <div class="iv-box active" id="box-15">
-                        <div class="iv-label">IV15 (Fat Pitch)</div>
+                        <div class="iv-label">IV15 (15% return)</div>
                         <div class="iv-val" id="val-iv15">$0.00</div>
                     </div>
                 </div>
@@ -641,51 +678,27 @@
         </div>
     </div>
 
-    <div class="glossary">
-        <h2>Glossary</h2>
+    <details class="glossary">
+        <summary>Glossary</summary>
         <div class="glossary-grid">
             <div class="glossary-item">
-                <div class="glossary-term">Owners' Earnings</div>
-                <div class="glossary-def">Net income with the reported stock-based compensation expense swapped out for its true cash cost: the profit that actually belongs to shareholders.</div>
-            </div>
-            <div class="glossary-item">
-                <div class="glossary-term">Cash Cost of SBC</div>
-                <div class="glossary-def">What paying employees in stock actually costs existing shareholders in cash terms, once you count buybacks used to offset dilution and taxes withheld on vesting stock. Not the smaller non-cash number on the income statement.</div>
-            </div>
-            <div class="glossary-item">
                 <div class="glossary-term">IV8 / IV10 / IV12 / IV15</div>
-                <div class="glossary-def">The fair value of a stock at four different required-return bars. IV15 is the strictest: the most you could pay today and still expect a 15% annualized return over 15 years. IV8 is the loosest, most forgiving estimate.</div>
+                <div class="glossary-def">The price that delivers an 8%, 10%, 12% or 15% yearly return. IV15 is not intrinsic value. Intrinsic value sits around IV8 to IV10, generally 1.5 to 2.25 times IV15.</div>
             </div>
             <div class="glossary-item">
                 <div class="glossary-term">P/IV</div>
-                <div class="glossary-def">Current price divided by intrinsic value at your chosen hurdle. Below 1.0x means the stock is trading under fair value (undervalued); above 1.0x means it's trading over fair value (overvalued).</div>
+                <div class="glossary-def">Price divided by the IV at a given return. Below 1.0x, the price should deliver more than that return; above 1.0x, less.</div>
+            </div>
+            <div class="glossary-item">
+                <div class="glossary-term">Cash Cost of SBC</div>
+                <div class="glossary-def">What stock pay costs owners in cash: withholding tax paid on vesting, net of what employees pay in, plus the buybacks that only offset dilution. Not the non-cash expense on the income statement.</div>
             </div>
             <div class="glossary-item">
                 <div class="glossary-term">Fat Pitch</div>
-                <div class="glossary-def">A borrowed baseball term for a rare, unusually attractive opportunity: a good business trading well below its intrinsic value, worth swinging at.</div>
-            </div>
-            <div class="glossary-item">
-                <div class="glossary-term">Perpetuity Leg</div>
-                <div class="glossary-def">One of two valuation estimates this tool blends: the "forever" case, assuming cash flow keeps growing at the same rate indefinitely.</div>
-            </div>
-            <div class="glossary-item">
-                <div class="glossary-term">Year-15 Leg</div>
-                <div class="glossary-def">The second estimate: a more conservative case that only projects 15 years out, then assumes the business is valued at a set earnings multiple at that point instead of growing forever.</div>
-            </div>
-            <div class="glossary-item">
-                <div class="glossary-term">Terminal Multiple</div>
-                <div class="glossary-def">The earnings multiple assumed for the Year-15 leg's ending value: essentially "what P/E ratio might this business still command in 15 years," once its growth has matured.</div>
-            </div>
-            <div class="glossary-item">
-                <div class="glossary-term">Dilution Rate</div>
-                <div class="glossary-def">How fast the total share count grows or shrinks each year. A positive rate means more shares get created than bought back, so each existing share represents a slightly smaller slice of the company over time.</div>
-            </div>
-            <div class="glossary-item">
-                <div class="glossary-term">Discount / Hurdle Rate</div>
-                <div class="glossary-def">The annual return you require to make an investment worth it. A higher hurdle demands a lower purchase price today. It's the "d" behind IV8 through IV15.</div>
+                <div class="glossary-def">A rare opportunity worth swinging at. It weighs business quality as well as price, so a stock at IV15 is not automatically a fat pitch, and a great business can be one above IV15.</div>
             </div>
         </div>
-    </div>
+    </details>
 </div>
 
 <script>
@@ -728,11 +741,17 @@
     // Guards against nonsense output: growth too close to/above the
     // effective hurdle (Infinity), negative/zero owners' earnings, or
     // any other non-finite result. Returns display text instead of a number.
-    function formatIV(value, cfPerShare) {
+    // Net cash per share is added to the value of the earnings, and the
+    // total may be negative when net debt outweighs it.
+    function formatIV(value, cfPerShare, netCashPerShare = 0) {
         if (cfPerShare <= 0) return 'N/A (neg. earnings)';
         if (!isFinite(value)) return 'N/A (growth ≥ hurdle)';
-        if (value <= 0) return 'N/A';
-        return `$${value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        return formatMoney(value + netCashPerShare);
+    }
+
+    function formatMoney(value) {
+        const text = Math.abs(value).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        return value < 0 && text !== '0.00' ? `-$${text}` : `$${text}`;
     }
 
     // Owners' earnings: net income with the reported SBC expense replaced by
@@ -742,14 +761,81 @@
         return netIncome + gaapSbc - sbcCashCost;
     }
 
+    // Where each figure can be checked, for the ticker in the form.
+    const SOURCE_PAGES = {
+        price: ['yahoo', ''],
+        netIncome: ['stockanalysis', 'financials/'],
+        gaapSbc: ['stockanalysis', 'financials/cash-flow-statement/'],
+        sbc: ['stockanalysis', 'financials/cash-flow-statement/'],
+        shares: ['stockanalysis', 'statistics/'],
+        netCash: ['stockanalysis', 'financials/balance-sheet/'],
+        growth: ['stockanalysis', 'financials/ratios/'],
+        dilution: ['stockanalysis', 'financials/']
+    };
+
+    function sourceUrl(field, ticker) {
+        const [site, page] = SOURCE_PAGES[field];
+        const symbol = String(ticker || '').trim();
+        if (site === 'yahoo') {
+            return symbol ? `https://finance.yahoo.com/quote/${encodeURIComponent(symbol.toUpperCase().replace(/\./g, '-'))}/` : 'https://finance.yahoo.com/';
+        }
+        return symbol ? `https://stockanalysis.com/stocks/${encodeURIComponent(symbol.toLowerCase().replace(/-/g, '.'))}/${page}` : 'https://stockanalysis.com/';
+    }
+
+    // Stock pay is charged once, by one of two routes, never both:
+    //   'cash'     owners' earnings carry the true cash cost, which already
+    //              includes the share-count change, so the count is held flat.
+    //   'dilution' stock pay is treated as non-cash and paid for through a
+    //              share count that grows at the given rate.
+    function resolveOwnerCashFlow(route, netIncome, gaapSbc, sbcCashCost, dilution) {
+        if (route === 'dilution') {
+            return { ownersEarnings: calculateOwnersEarnings(netIncome, gaapSbc, 0), dilution };
+        }
+        return { ownersEarnings: calculateOwnersEarnings(netIncome, gaapSbc, sbcCashCost), dilution: 0 };
+    }
+
+    // Burry: owners' earnings "already accounts for" buybacks, so a shrinking
+    // share count is never applied on top of them.
+    function dilutionError(route, dilution) {
+        if (route !== 'dilution') return '';
+        return dilution < 0 ? 'Dilution cannot be negative: owners\' earnings already account for buybacks' : '';
+    }
+
+    // States where the price sits, using only Burry's definitions: IV15 is
+    // the price for a 15% return and is not intrinsic value; intrinsic value
+    // is around IV8 to IV10, generally 1.5 to 2.25x IV15. No verdict is added.
+    function describeValuation(price, selectedRate, selectedIv, iv8, iv10, iv15) {
+        const usable = value => Number.isFinite(value) && value > 0;
+        if (Number.isFinite(selectedIv) && selectedIv <= 0) {
+            return { badgeText: `IV${selectedRate} is negative`, rangeText: '' };
+        }
+        if (!usable(selectedIv)) return { badgeText: 'Not enough data to compare', rangeText: '' };
+        if (!usable(price)) return { badgeText: 'Enter a stock price to compare', rangeText: '' };
+
+        const notes = [];
+        if (usable(iv8) && usable(iv10)) {
+            const zone = price < iv10 ? 'Below' : price <= iv8 ? 'Within' : 'Above';
+            notes.push(`${zone} the IV8 to IV10 intrinsic value range (${formatMoney(iv10)} to ${formatMoney(iv8)})`);
+        }
+        if (usable(iv15)) {
+            notes.push(`Price is ${(price / iv15).toFixed(2)}x IV15; intrinsic value generally sits at 1.5x to 2.25x IV15`);
+        }
+
+        const multiple = price / selectedIv;
+        const badgeText = multiple < 1
+            ? `Trading ${((1 - multiple) * 100).toFixed(0)}% below IV${selectedRate}`
+            : `Trading ${((multiple - 1) * 100).toFixed(0)}% above IV${selectedRate}`;
+        return { badgeText, rangeText: notes.join('. ') };
+    }
+
     function clearResults(message) {
-        ['res-oe', 'res-eps', 'res-iv', 'res-mos', 'val-iv8', 'val-iv10', 'val-iv12', 'val-iv15'].forEach(id => {
+        ['res-oe', 'res-eps', 'res-netcash', 'res-iv', 'val-iv8', 'val-iv10', 'val-iv12', 'val-iv15'].forEach(id => {
             document.getElementById(id).innerText = '\u2014';
         });
-        document.getElementById('res-iv').className = 'result-value';
         const badgeEl = document.getElementById('multiple-badge');
         badgeEl.className = 'badge';
         badgeEl.innerText = message;
+        document.getElementById('iv-range-note').innerText = '';
         document.getElementById('blend-breakdown').innerText = 'Perpetuity leg: \u2014 | Year-15 leg: \u2014';
         [8, 10, 12, 15].forEach(rate => {
             document.getElementById(`val-iv${rate}`).className = 'iv-val na';
@@ -760,10 +846,24 @@
         // Inputs
         const netIncome = parseFloat(document.getElementById('netIncome').value);
         const gaapSbc = parseFloat(document.getElementById('gaapSbc').value);
-        const sbc = parseFloat(document.getElementById('sbc').value);
+        const route = document.getElementById('sbcRoute').value;
+        const sbcInput = document.getElementById('sbc');
+        const dilutionInput = document.getElementById('dilution');
+        // Only the field that belongs to the chosen route is shown and live.
+        sbcInput.disabled = route === 'dilution';
+        dilutionInput.disabled = route !== 'dilution';
+        document.getElementById('sbc-group').hidden = route === 'dilution';
+        document.getElementById('dilution-group').hidden = route !== 'dilution';
+        // A blank cash cost falls back to the reported expense.
+        const sbc = route === 'dilution' ? 0
+            : String(sbcInput.value).trim() === '' ? gaapSbc
+            : parseFloat(sbcInput.value);
         const shares = parseFloat(document.getElementById('shares').value);
+        // Optional: blank means no net cash adjustment.
+        const netCashText = document.getElementById('netCash').value;
+        const netCash = String(netCashText).trim() === '' ? 0 : parseFloat(netCashText);
         const growth = parseFloat(document.getElementById('growth').value) / 100;
-        const dilution = parseFloat(document.getElementById('dilution').value) / 100;
+        const enteredDilution = route === 'dilution' ? parseFloat(dilutionInput.value) / 100 : 0;
         const currentPrice = parseFloat(document.getElementById('price').value);
         const selectedRate = parseFloat(document.getElementById('discount-rate').value);
         const terminalMultiple = parseFloat(document.getElementById('termMult').value);
@@ -773,7 +873,6 @@
         document.getElementById('rate-display').innerText = `IV${selectedRate} (${selectedRate}%)`;
         document.getElementById('main-iv-label').innerText = `IV${selectedRate} Value`;
         document.getElementById('target-rate-sub').innerText = selectedRate;
-        document.getElementById('mos-rate-sub').innerText = selectedRate;
         document.getElementById('blend-display').innerText = `${(perpetuityWeight * 100).toFixed(0)}% / ${(100 - perpetuityWeight * 100).toFixed(0)}%`;
 
         const referenceRates = [8, 10, 12, 15];
@@ -782,14 +881,14 @@
         });
 
         // A blank or zero share count must never silently become one share.
-        if (![netIncome, gaapSbc, sbc, shares, growth, dilution, terminalMultiple].every(Number.isFinite)) {
+        if (![netIncome, gaapSbc, sbc, shares, netCash, growth, enteredDilution, terminalMultiple].every(Number.isFinite)) {
             clearResults('Enter all inputs to calculate');
             return;
         }
         const inputError = shares <= 0 ? 'Shares outstanding must be greater than 0'
             : gaapSbc < 0 || sbc < 0 ? 'SBC must be 0 or greater'
             : growth < -1 ? 'Growth must be at least -100%'
-            : dilution <= -1 ? 'Dilution must be greater than -100%'
+            : dilutionError(route, enteredDilution) ? dilutionError(route, enteredDilution)
             : terminalMultiple < 0 ? 'Terminal multiple must be 0 or greater'
             : '';
         if (inputError) {
@@ -798,66 +897,88 @@
         }
 
         // Step 1: Owners Earnings
-        const ownersEarnings = calculateOwnersEarnings(netIncome, gaapSbc, sbc);
+        const { ownersEarnings, dilution } = resolveOwnerCashFlow(route, netIncome, gaapSbc, sbc, enteredDilution);
         const cfPerShare = ownersEarnings / shares;
+        const netCashPerShare = netCash / shares;
 
         document.getElementById('res-oe').innerText = `$${ownersEarnings.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2})} M`;
         document.getElementById('res-eps').innerText = `$${cfPerShare.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 
-        // Calculate selected IV (hybrid of perpetuity + Year-15-cutoff legs)
-        const { hybridIV: mainIv, perpetuityIV, finiteIV } = calculateHybridIV(
+        document.getElementById('res-netcash').innerText = formatMoney(netCashPerShare);
+
+        // Calculate selected IV (hybrid of perpetuity + Year-15-cutoff legs).
+        // The legs value the earnings; net cash per share is added on top.
+        const { hybridIV: earningsIv, perpetuityIV, finiteIV } = calculateHybridIV(
             cfPerShare, growth, dilution, selectedRate / 100, terminalMultiple, perpetuityWeight
         );
-        document.getElementById('res-iv').innerText = formatIV(mainIv, cfPerShare);
+        const mainIv = earningsIv + netCashPerShare;
+        document.getElementById('res-iv').innerText = formatIV(earningsIv, cfPerShare, netCashPerShare);
         document.getElementById('blend-breakdown').innerText =
-            `Perpetuity leg: ${formatIV(perpetuityIV, cfPerShare)} | Year-15 leg: ${formatIV(finiteIV, cfPerShare)}`;
+            `Perpetuity leg: ${formatIV(perpetuityIV, cfPerShare, netCashPerShare)} | Year-15 leg: ${formatIV(finiteIV, cfPerShare, netCashPerShare)}`;
 
-        // 20% margin-of-safety buy target, off the same main IV
-        const mosTarget = (isFinite(mainIv) && mainIv > 0) ? mainIv * 0.8 : mainIv;
-        document.getElementById('res-mos').innerText = formatIV(mosTarget, cfPerShare);
 
-        // Calculate Multiple (only meaningful if mainIv is a real, positive number)
-        const badgeEl = document.getElementById('multiple-badge');
-        const resIvEl = document.getElementById('res-iv');
-        if (cfPerShare > 0 && isFinite(mainIv) && mainIv > 0 && Number.isFinite(currentPrice) && currentPrice > 0) {
-            const multiple = currentPrice / mainIv;
-
-            if (multiple < 1.0) {
-                const pctBelow = (1 - multiple) * 100;
-                resIvEl.className = 'result-value fat-pitch';
-                badgeEl.className = 'badge success';
-                badgeEl.innerText = `Trading ${pctBelow.toFixed(0)}% below fair value`;
-            } else {
-                const pctAbove = (multiple - 1) * 100;
-                resIvEl.className = 'result-value expensive';
-                badgeEl.className = 'badge danger';
-                badgeEl.innerText = `Trading ${pctAbove.toFixed(0)}% above fair value`;
-            }
-        } else {
-            resIvEl.className = 'result-value';
-            badgeEl.className = 'badge';
-            badgeEl.innerText = cfPerShare > 0 && isFinite(mainIv) && mainIv > 0
-                ? 'Enter a stock price to compare'
-                : 'Not enough data to compare';
-        }
-
-        // Calculate Reference IVs (capped at IV15; IV18/IV20 are unused)
+        // Reference IVs (capped at IV15; IV18/IV20 are unused)
+        const referenceIvs = {};
         referenceRates.forEach(rate => {
             const { hybridIV: iv } = calculateHybridIV(cfPerShare, growth, dilution, rate / 100, terminalMultiple, perpetuityWeight);
+            referenceIvs[rate] = iv + netCashPerShare;
             const valEl = document.getElementById(`val-iv${rate}`);
-            valEl.innerText = formatIV(iv, cfPerShare);
-            valEl.className = (cfPerShare > 0 && isFinite(iv) && iv > 0) ? 'iv-val' : 'iv-val na';
+            valEl.innerText = formatIV(iv, cfPerShare, netCashPerShare);
+            valEl.className = (cfPerShare > 0 && isFinite(iv)) ? 'iv-val' : 'iv-val na';
         });
+
+        // Price against the selected IV, and against his intrinsic value definitions.
+        const verdict = describeValuation(
+            currentPrice, selectedRate, cfPerShare > 0 ? mainIv : NaN, referenceIvs[8], referenceIvs[10], referenceIvs[15]
+        );
+        document.getElementById('multiple-badge').innerText = verdict.badgeText;
+        document.getElementById('iv-range-note').innerText = verdict.rangeText;
     }
 
     // Ticker lookup supplies reported figures only, never growth or dilution assumptions.
+    // The built-in key is public and shared by every visitor, so it is easily
+    // exhausted; a visitor's own key, kept in their browser, takes priority.
     const FMP_API_KEY = '08KjsknwFjOxw8Q6fiCOOZjkR8jrYeBw';
     const FMP_BASE = 'https://financialmodelingprep.com/stable';
+    const API_KEY_STORAGE = 'fmpApiKey';
+    const LOOKUP_CACHE_MS = 15 * 60 * 1000;
+    const lookupCache = new Map();
     let tickerRequest = null;
+    let tickerRequestSymbol = null;
+
+    function readStoredApiKey() {
+        try { return localStorage.getItem(API_KEY_STORAGE) || ''; } catch (error) { return ''; }
+    }
+
+    function storeApiKey(key) {
+        try {
+            if (key) localStorage.setItem(API_KEY_STORAGE, key);
+            else localStorage.removeItem(API_KEY_STORAGE);
+        } catch (error) { /* storage unavailable: the key lasts for this visit only */ }
+    }
+
+    // Turns a provider failure into something the visitor can act on.
+    function lookupFailureMessage(status, usingOwnKey) {
+        if (status === 429) {
+            return usingOwnKey
+                ? 'Your data key has reached its request limit. Existing inputs were kept. Try again later or enter figures manually.'
+                : 'The shared lookup key has reached its daily limit. Existing inputs were kept. Add your own data key below, or enter figures manually.';
+        }
+        if (status === 401 || status === 403) {
+            return usingOwnKey
+                ? 'Your data key was rejected. Existing inputs were kept. Check the key below or enter figures manually.'
+                : 'The shared lookup key was rejected. Existing inputs were kept. Add your own data key below, or enter figures manually.';
+        }
+        if (status === 402) {
+            return 'This ticker is not covered by the current data plan. Existing inputs were kept; enter the figures manually.';
+        }
+        return 'Ticker lookup failed. Existing inputs were kept. Try again or enter figures manually.';
+    }
 
     function cancelTickerRequest() {
         if (tickerRequest) tickerRequest.abort();
         tickerRequest = null;
+        tickerRequestSymbol = null;
         document.getElementById('fetch-btn').disabled = false;
     }
 
@@ -866,6 +987,8 @@
         const statusEl = document.getElementById('fetch-status');
         const fetchBtn = document.getElementById('fetch-btn');
         const ticker = tickerInput.value.trim().toUpperCase();
+        // Enter, blur and the button can all fire for one lookup; send it once.
+        if (tickerRequest && tickerRequestSymbol === ticker) return;
         cancelTickerRequest();
         if (!ticker) {
             statusEl.textContent = 'Enter a ticker first.';
@@ -873,28 +996,84 @@
         }
 
         tickerInput.value = ticker;
+        const ownKey = String(document.getElementById('api-key').value || '').trim();
+        const apiKey = ownKey || FMP_API_KEY;
         const controller = new AbortController();
         tickerRequest = controller;
+        tickerRequestSymbol = ticker;
         const timeout = setTimeout(() => controller.abort(), 15000);
+
+        // Apply a complete set together so figures from different tickers are never mixed.
+        function applyFigures({ figures, netCash, fiscalYear }) {
+            for (const [id, value] of Object.entries(figures)) {
+                const input = document.getElementById(id);
+                input.value = id === 'price' ? value.toFixed(2) : value / 1e6;
+                input.classList.add('auto-filled');
+            }
+            // Cash cost of SBC restarts at the reported figure for each company.
+            document.getElementById('sbc').value = '';
+            const netCashInput = document.getElementById('netCash');
+            netCashInput.value = netCash === null ? '' : netCash / 1e6;
+            if (netCash !== null) netCashInput.classList.add('auto-filled');
+            else if (netCashInput.classList.remove) netCashInput.classList.remove('auto-filled');
+            calculate();
+
+            const period = fiscalYear ? ` (FY${fiscalYear})` : '';
+            statusEl.textContent = `Loaded ${ticker}${period}.${netCash === null ? ' Net cash was not available; add it under Company figures.' : ''}`;
+            // Fold the filled figures away and make the page linkable.
+            document.getElementById('company-figures').open = netCash === null;
+            document.getElementById('company-summary').textContent = `Company figures: ${ticker}${period}`;
+            try { history.replaceState(null, '', `?t=${encodeURIComponent(ticker)}`); } catch (error) { /* not available here */ }
+        }
+
+        // A repeat lookup within a few minutes costs no provider requests.
+        const cached = lookupCache.get(ticker);
+        if (cached && Date.now() - cached.savedAt < LOOKUP_CACHE_MS) {
+            clearTimeout(timeout);
+            tickerRequest = null;
+            tickerRequestSymbol = null;
+            applyFigures(cached);
+            return;
+        }
+
         fetchBtn.disabled = true;
         statusEl.textContent = `Fetching ${ticker}...`;
 
         try {
             async function request(endpoint, extra = {}) {
-                const query = new URLSearchParams({ symbol: ticker, apikey: FMP_API_KEY, ...extra });
+                const query = new URLSearchParams({ symbol: ticker, apikey: apiKey, ...extra });
                 const response = await fetch(`${FMP_BASE}/${endpoint}?${query}`, { signal: controller.signal });
-                if (!response.ok) throw new Error('Provider request failed');
+                if (!response.ok) {
+                    const failure = new Error('Provider request failed');
+                    failure.status = response.status;
+                    throw failure;
+                }
                 const rows = await response.json();
+                // The provider sometimes reports an exhausted key inside a 200 response.
+                if (rows && !Array.isArray(rows) && /limit/i.test(String(rows['Error Message'] || ''))) {
+                    const failure = new Error('Provider limit reached');
+                    failure.status = 429;
+                    throw failure;
+                }
                 return Array.isArray(rows) ? rows[0] : null;
             }
 
-            const [quote, cashFlow, shares] = await Promise.all([
+            // The quote's market value and price give the share count. The
+            // balance sheet only feeds net cash, so its failure is not fatal.
+            const [quote, cashFlow, balance] = await Promise.all([
                 request('quote'),
                 request('cash-flow-statement', { period: 'annual', limit: '1' }),
-                request('shares-float')
+                request('balance-sheet-statement', { period: 'annual', limit: '1' }).catch(() => null)
             ]);
             if (tickerRequest !== controller || controller.signal.aborted) return;
-            if (!quote || !cashFlow || !shares) {
+            let shareCount = quote && quote.price > 0 && quote.marketCap > 0 ? quote.marketCap / quote.price : null;
+            if (quote && cashFlow && shareCount === null) {
+                // Only when the quote carries no market value: one extra request.
+                const float = await request('shares-float');
+                if (tickerRequest !== controller || controller.signal.aborted) return;
+                shareCount = float ? float.outstandingShares : null;
+            }
+            if (!quote || !cashFlow) {
                 statusEl.textContent = `No data found for "${ticker}". Existing inputs were kept. Check the ticker or enter figures manually.`;
                 return;
             }
@@ -902,34 +1081,30 @@
             const figures = {
                 netIncome: cashFlow.netIncome,
                 gaapSbc: cashFlow.stockBasedCompensation,
-                // Reported SBC stands in for its cash cost until the user refines it.
-                sbc: cashFlow.stockBasedCompensation,
-                shares: shares.outstandingShares,
+                shares: shareCount,
                 price: quote.price
             };
-            if (!Object.values(figures).every(Number.isFinite) || figures.sbc < 0 || figures.shares <= 0 || figures.price <= 0) {
+            if (!Object.values(figures).every(Number.isFinite) || figures.gaapSbc < 0 || figures.shares <= 0 || figures.price <= 0) {
                 statusEl.textContent = `Incomplete data for ${ticker}. Existing inputs were kept; enter the figures manually.`;
                 return;
             }
 
-            // Apply a complete set together so figures from different tickers are never mixed.
-            for (const [id, value] of Object.entries(figures)) {
-                const input = document.getElementById(id);
-                input.value = id === 'price' ? value.toFixed(2) : value / 1e6;
-                input.classList.add('auto-filled');
-            }
-            calculate();
-            const period = cashFlow.fiscalYear ? ` (fiscal year ${cashFlow.fiscalYear})` : '';
-            statusEl.textContent = `Loaded ${ticker}${period}. Growth, dilution, and terminal multiple remain yours to set. You can edit any filled value.`;
+            const netCash = balance && Number.isFinite(balance.cashAndShortTermInvestments) && Number.isFinite(balance.totalDebt)
+                ? balance.cashAndShortTermInvestments - balance.totalDebt
+                : null;
+            const loaded = { figures, netCash, fiscalYear: cashFlow.fiscalYear, savedAt: Date.now() };
+            lookupCache.set(ticker, loaded);
+            applyFigures(loaded);
         } catch (error) {
             if (tickerRequest !== controller) return;
             statusEl.textContent = controller.signal.aborted
                 ? 'Lookup timed out. Existing inputs were kept. Try again or enter figures manually.'
-                : 'Ticker lookup failed. Existing inputs were kept. Try again or enter figures manually.';
+                : lookupFailureMessage(error.status, Boolean(ownKey));
         } finally {
             clearTimeout(timeout);
             if (tickerRequest === controller) {
                 tickerRequest = null;
+                tickerRequestSymbol = null;
                 fetchBtn.disabled = false;
             }
         }
@@ -942,9 +1117,22 @@
             fetchTickerData();
         }
     });
+    // Source links follow the ticker as it is typed.
+    function updateSourceLinks() {
+        const ticker = document.getElementById('ticker').value;
+        document.querySelectorAll('.source-link').forEach(link => {
+            link.href = sourceUrl(link.dataset.field, ticker);
+        });
+    }
+
     document.getElementById('ticker').addEventListener('input', () => {
         cancelTickerRequest();
         document.getElementById('fetch-status').textContent = '';
+        updateSourceLinks();
+    });
+    // Leaving the field with a new ticker fetches it without a click.
+    document.getElementById('ticker').addEventListener('change', () => {
+        if (document.getElementById('ticker').value.trim()) fetchTickerData();
     });
 
     // A manual edit removes the fetched-value highlight.
@@ -959,67 +1147,77 @@
         });
     });
 
+    document.getElementById('sbcRoute').addEventListener('change', calculate);
+
+    // The visitor's own data key stays in this browser.
+    document.getElementById('api-key').value = readStoredApiKey();
+    document.getElementById('api-key').addEventListener('input', event => {
+        storeApiKey(event.target.value.trim());
+        lookupCache.clear();
+        document.getElementById('fetch-status').textContent = '';
+    });
+
     // Clear company inputs while keeping the selected model settings.
     document.getElementById('clear-btn').addEventListener('click', () => {
         cancelTickerRequest();
         document.getElementById('fetch-status').textContent = '';
-        ['ticker', 'netIncome', 'gaapSbc', 'sbc', 'shares', 'growth', 'dilution', 'price'].forEach(id => {
+        ['ticker', 'netIncome', 'gaapSbc', 'sbc', 'shares', 'netCash', 'growth', 'dilution', 'price'].forEach(id => {
             const input = document.getElementById(id);
             input.value = '';
             input.classList.remove('auto-filled');
         });
+        document.getElementById('company-figures').open = true;
+        document.getElementById('company-summary').textContent = 'Company figures';
+        updateSourceLinks();
+        try { history.replaceState(null, '', location.pathname); } catch (error) { /* not available here */ }
         calculate();
     });
 
     // Initial calculation
     calculate();
 
-    // Tooltip positioning: computed once up front (and on resize), not on
-    // every hover, since layout dimensions are readable via getBoundingClientRect
-    // even while an element is visibility:hidden, so there's no need to
-    // recompute per-interaction. Showing/hiding itself is left entirely to
-    // native CSS :hover/:focus-within (see stylesheet), which has no timing
-    // races and can't flicker the way competing JS show/hide state could.
+    // A link such as ?t=AAPL opens with that company already loaded.
+    const linkedTicker = new URLSearchParams(location.search).get('t');
+    if (linkedTicker) {
+        document.getElementById('ticker').value = linkedTicker;
+        updateSourceLinks();
+        fetchTickerData();
+    }
+
+    // Tooltip placement is measured each time one opens, so it is right after
+    // scrolling or after a section has been shown or folded away. Showing and
+    // hiding stay with CSS :hover/:focus-within.
     (function () {
         const EDGE_MARGIN = 12;
 
-        function positionAllTooltips() {
-            document.querySelectorAll('.info-icon').forEach(icon => {
-                const tooltip = icon.querySelector('.tooltip');
-                if (!tooltip) return;
+        function positionTooltip(icon) {
+            const tooltip = icon.querySelector('.tooltip');
+            if (!tooltip) return;
 
-                tooltip.classList.remove('flip-down');
-                tooltip.style.transform = 'translateX(-50%)';
+            tooltip.classList.remove('flip-down');
+            tooltip.style.transform = 'translateX(-50%)';
 
-                const iconRect = icon.getBoundingClientRect();
-                const tooltipHeight = tooltip.offsetHeight;
+            // Flip below the icon if there isn't room above it.
+            if (icon.getBoundingClientRect().top - tooltip.offsetHeight - 16 < EDGE_MARGIN) {
+                tooltip.classList.add('flip-down');
+            }
 
-                // Flip below the icon if there isn't room above it.
-                if (iconRect.top - tooltipHeight - 16 < EDGE_MARGIN) {
-                    tooltip.classList.add('flip-down');
-                }
-
-                // Clamp horizontally so it never overflows the viewport.
-                const tooltipRect = tooltip.getBoundingClientRect();
-                let shift = 0;
-                if (tooltipRect.left < EDGE_MARGIN) {
-                    shift = EDGE_MARGIN - tooltipRect.left;
-                } else if (tooltipRect.right > window.innerWidth - EDGE_MARGIN) {
-                    shift = (window.innerWidth - EDGE_MARGIN) - tooltipRect.right;
-                }
-                if (shift !== 0) {
-                    tooltip.style.transform = `translateX(calc(-50% + ${shift}px))`;
-                }
-            });
+            // Clamp horizontally so it never overflows the viewport.
+            const tooltipRect = tooltip.getBoundingClientRect();
+            let shift = 0;
+            if (tooltipRect.left < EDGE_MARGIN) {
+                shift = EDGE_MARGIN - tooltipRect.left;
+            } else if (tooltipRect.right > window.innerWidth - EDGE_MARGIN) {
+                shift = (window.innerWidth - EDGE_MARGIN) - tooltipRect.right;
+            }
+            if (shift !== 0) {
+                tooltip.style.transform = `translateX(calc(-50% + ${shift}px))`;
+            }
         }
 
-        positionAllTooltips();
-
-        // Re-measure on resize only (debounced), since layout can shift.
-        let resizeTimer = null;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(positionAllTooltips, 150);
+        document.querySelectorAll('.info-icon').forEach(icon => {
+            icon.addEventListener('mouseenter', () => positionTooltip(icon));
+            icon.addEventListener('focus', () => positionTooltip(icon));
         });
     })();
 </script>

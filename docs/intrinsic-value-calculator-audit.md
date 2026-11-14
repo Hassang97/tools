@@ -229,6 +229,38 @@ limitation is enough for now.
 - Dilution of -99% returns about 4e30 with no guard.
 - Only the ticker label is tied to its input (`for`); the rest are not associated.
 
+## Status
+
+- **A1: fixed.** A "How To Charge For SBC" selector makes the two routes mutually exclusive: cash
+  cost with the share count held flat, or a dilution rate with no cash cost. A negative dilution
+  rate is rejected, following "the Tragic Algebra that leads to owners' earnings already accounts
+  for it": buybacks are not counted again through the share count.
+- **A2: fixed.** The badge reads "X% below/above IV15", a second line places the price against the
+  IV8 to IV10 intrinsic value range and gives the price as a multiple of IV15 beside his 1.5 to
+  2.25x band. The page adds no verdict or colour of its own, and no hurdle is called "fair value".
+- **A11: fixed.** The 0.8x "Conservative Buy Target" is removed.
+- **A3: fixed.** Optional net cash ($M, negative for net debt) is added per share to both legs and
+  every reference value; a negative IV is displayed. It is a manual input, not auto-filled.
+- **A4: partly fixed.** 429 (including the provider's 200-with-error form), 401/403 and 402 get
+  their own messages; a lookup costs two calls instead of three (share count from market value /
+  price, with the float endpoint as fallback); repeat lookups are cached for 15 minutes; visitors
+  can use their own key, stored in their browser. The shared key is still public in the page
+  source. The market-value share count has not been checked against live data because the shared
+  key was at its limit; A9 remains open.
+
+- **A3 update.** Net cash is now auto-filled from the latest balance sheet (cash and short-term
+  investments minus total debt) as an editable starting value; float and purchase obligations
+  are still the visitor's adjustment.
+- **A7: fixed.** The growth hover quotes the ROIC limit and links to the company's ratios page.
+- **A8: partly fixed.** Tooltip placement is measured each time one opens. Clipping by the
+  container's `overflow: hidden` is unchanged.
+- **A12: partly fixed.** The cash-cost hover gives `Ω = C + T(W + ΔS)/W` and the glossary notes
+  that `C` is net of employee proceeds. No helper for computing it.
+- **A15: partly fixed.** The "start at 50/50" and "IV8 to IV15" texts are gone.
+- **Layout.** Every hover is a one-line definition plus the formula; each company figure links to
+  its stockanalysis.com or Yahoo Finance page for the entered ticker; a lookup (button, Enter,
+  leaving the field, or a `?t=TICKER` link) fills everything except growth, costing three calls.
+
 ## Suggested order
 
 1. A2 (labels and badge): text-only, removes the inverted verdict.
